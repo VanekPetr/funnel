@@ -30,19 +30,21 @@ env:
   LOG_SUCCESS: 'printf "${GREEN}[SUCCESS] %s${RESET}\n"'
   LOG_ERROR: 'printf "${RED}[ERROR] %s${RESET}\n"'
 
+  PATH: "{{.HOME}}/.local/bin:{{.PATH}}"
+
 # Include task groups
 includes:
   build:
-    taskfile: ./.github/taskfiles/build.yml
+    taskfile: ./taskfiles/build.yml
     desc: Build tasks for managing dependencies and building packages
   quality:
-    taskfile: ./.github/taskfiles/quality.yml
+    taskfile: ./taskfiles/quality.yml
     desc: Code quality tasks for formatting, linting, and checking code
   docs:
-    taskfile: ./.github/taskfiles/docs.yml
+    taskfile: ./taskfiles/docs.yml
     desc: Documentation tasks for building docs, notebooks, and books
   cleanup:
-    taskfile: ./.github/taskfiles/cleanup.yml
+    taskfile: ./taskfiles/cleanup.yml
     desc: Cleanup tasks for removing generated files and directories
 
 # Task definitions
@@ -58,4 +60,3 @@ tasks:
     silent: true
     cmds:
       - task --list-all
-        
