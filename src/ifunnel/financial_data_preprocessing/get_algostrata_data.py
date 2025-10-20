@@ -21,7 +21,7 @@ T = TypeVar("T")
 
 # BATCH FUNCTION
 # ----------------------------------------------------------------------
-def batch[T](iterable: Sequence[T], n: int = 1) -> Iterator[Sequence[T]]:
+def batch(iterable: Sequence[T], n: int = 1) -> Iterator[Sequence[T]]:
     """Split an iterable into batches of specified size.
 
     This function yields consecutive batches from the input iterable,
