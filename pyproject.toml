@@ -7,7 +7,7 @@ authors = [{name='Thomas Schmelzer', email= 'thomas.schmelzer@gmail.com'},
            {name="Petr Vanek", email="abc@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "clarabel>=0.10.0",
     "cvxpy-base>=1.6.1",
@@ -16,9 +16,9 @@ dependencies = [
     "matplotlib>=3.10.0",
     "mosek>=11.0.8",
     "networkx>=3.4.2",
-    "numpy>=2.2.3",
-    "pandas>=2.2.3",
-    "plotly>=6.0.0",
+    "numpy>=2.3.0",
+    "pandas>=2.3.0",
+    "plotly>=6.3.0",
     "pyarrow>=22.0.0",
     "pydantic-settings>=2.11.0",
     "python-dateutil>=2.9.0.post0",
