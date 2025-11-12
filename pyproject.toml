@@ -54,7 +54,7 @@ include = [
 ]
 
 [tool.deptry.per_rule_ignores]
-DEP002 = ["clarabel","pyarrow","ecos","mosek","cvxpy-base"]
+DEP002 = ["clarabel","pyarrow","ecos","mosek","cvxpy-base","pydantic"]
 
 [tool.deptry]
 # see https://deptry.com/usage/#pep-621-dev-dependency-groups
