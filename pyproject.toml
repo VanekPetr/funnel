@@ -32,11 +32,9 @@ dependencies = [
 [project.urls]
 repository = "https://github.com/tschm/funnel"
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-    "pytest-cov>=6.0.0",
-    "pytest>=8.3.3",
-    "pre-commit>=4.0.1"
+    "marimo>=0.18",
 ]
 
 [build-system]
