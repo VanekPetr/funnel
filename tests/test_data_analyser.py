@@ -3,7 +3,7 @@
 import pandas as pd
 import pytest
 
-from ifunnel.models.data_analyser import final_stats, mean_an_returns
+from ifunnel.models.data_analyser import final_stats, get_weekly_returns, mean_an_returns
 
 
 def test_final_stats_with_valid_input() -> None:
@@ -112,3 +112,34 @@ def test_mean_an_returns_non_numeric_data() -> None:
 #     result = mean_an_returns(data)
 #     assert isinstance(result, pd.Series), "Result should be a pandas Series"
 #     assert all(-1 <= val <= 1 for val in result), "Each value in the result should be within a valid returns range"
+
+
+def test_get_weekly_returns_basic() -> None:
+    """Test get_weekly_returns with basic weekly data."""
+    # Create a date range with some Wednesdays
+    dates = pd.date_range(start="2023-01-04", periods=10, freq="W-WED")  # Wednesdays
+    data = pd.DataFrame(
+        {
+            "Asset1": [100, 102, 104, 106, 108, 110, 112, 114, 116, 118],
+            "Asset2": [200, 202, 204, 206, 208, 210, 212, 214, 216, 218],
+        },
+        index=dates,
+    )
+    result = get_weekly_returns(data)
+    assert isinstance(result, pd.DataFrame), "Result should be a pandas DataFrame"
+    assert len(result) == 9, "Result should have one less row (first row dropped)"
+    assert all(result.notnull().all()), "All values should be non-null"
+
+
+def test_get_weekly_returns_mixed_weekdays() -> None:
+    """Test get_weekly_returns with mixed weekdays."""
+    # Create data with different days of the week
+    dates = pd.date_range(start="2023-01-02", periods=15, freq="D")  # Daily data
+    data = pd.DataFrame(
+        {"Asset1": range(100, 115), "Asset2": range(200, 215)},
+        index=dates,
+    )
+    result = get_weekly_returns(data)
+    # Should only select Wednesdays
+    assert isinstance(result, pd.DataFrame), "Result should be a pandas DataFrame"
+    assert all(date.weekday() == 2 for date in result.index), "All dates should be Wednesdays"
