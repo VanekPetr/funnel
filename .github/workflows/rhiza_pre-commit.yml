@@ -20,6 +20,7 @@ permissions:
 
 on:
   push:
+    branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
 
@@ -30,5 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: pre-commit/action@v3.0.1
-
+      # Run pre-commit
+      - name: Run pre-commit
+        run: |
+          make fmt
