@@ -112,12 +112,12 @@ def test_scenario_generator_monte_carlo():
     np.random.seed(42)
     rng = np.random.default_rng(42)
     gen = ScenarioGenerator(rng)
-    
+
     data = pd.DataFrame(np.random.randn(200, 3), columns=["A", "B", "C"])
     n_simulations = 10
     n_test = 16
     sigma_lst, mu_lst = MomentGenerator.generate_sigma_mu_for_test_periods(data, n_test)
-    
+
     result = gen.monte_carlo(data, n_simulations, n_test, sigma_lst, mu_lst)
     assert isinstance(result, np.ndarray)
     assert result.shape[1] == n_simulations
@@ -129,11 +129,11 @@ def test_scenario_generator_bootstrapping():
     np.random.seed(42)
     rng = np.random.default_rng(42)
     gen = ScenarioGenerator(rng)
-    
+
     data = pd.DataFrame(np.random.randn(200, 3), columns=["A", "B", "C"])
     n_simulations = 10
     n_test = 16
-    
+
     result = gen.bootstrapping(data, n_simulations, n_test)
     assert isinstance(result, np.ndarray)
     assert result.shape[1] == n_simulations
@@ -145,12 +145,12 @@ def test_mc_simulation_annual_from_weekly():
     np.random.seed(42)
     rng = np.random.default_rng(42)
     gen = ScenarioGenerator(rng)
-    
+
     weekly_mu = pd.Series([0.001, 0.002, 0.015], index=["A", "B", "Cash"])
     weekly_sigma = pd.DataFrame(
         [[0.01, 0.005, 0], [0.005, 0.02, 0], [0, 0, 0]], index=["A", "B", "Cash"], columns=["A", "B", "Cash"]
     )
-    
+
     result = gen.mc_simulation_annual_from_weekly(
         weekly_mu, weekly_sigma, n_simulations=10, n_years=2, cash_return_annual=0.015
     )
@@ -165,9 +165,9 @@ def test_bootstrap_simulation_annual_from_weekly():
     np.random.seed(42)
     rng = np.random.default_rng(42)
     gen = ScenarioGenerator(rng)
-    
+
     data = pd.DataFrame(np.random.randn(100, 2) * 0.01, columns=["A", "B"])
-    
+
     result = gen.bootstrap_simulation_annual_from_weekly(data, n_simulations=10, n_years=2, cash_return_annual=0.015)
     assert isinstance(result, np.ndarray)
     assert result.shape == (10, 2, 3)

@@ -1,9 +1,8 @@
 """Tests for clean_downloaded_data module."""
 
-import os
+from unittest.mock import patch
+
 import pandas as pd
-import pytest
-from unittest.mock import patch, MagicMock
 
 from ifunnel.financial_data_preprocessing.clean_downloaded_data import clean_data
 
@@ -19,15 +18,16 @@ def test_clean_data_basic():
         },
         index=dates,
     )
-    
-    with patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.join") as mock_join, \
-         patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.dirname") as mock_dirname, \
-         patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.getcwd") as mock_getcwd:
-        
+
+    with (
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.join") as mock_join,
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.dirname") as mock_dirname,
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.getcwd") as mock_getcwd,
+    ):
         mock_getcwd.return_value = "/fake/path"
         mock_dirname.return_value = "/fake"
         mock_join.return_value = "/fake/data.parquet"
-        
+
         with patch.object(pd.DataFrame, "to_parquet") as mock_to_parquet:
             clean_data(data)
             mock_to_parquet.assert_called_once()
@@ -43,16 +43,17 @@ def test_clean_data_with_missing_values():
         },
         index=dates,
     )
-    
-    with patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.join") as mock_join, \
-         patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.dirname") as mock_dirname, \
-         patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.getcwd") as mock_getcwd:
-        
+
+    with (
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.join") as mock_join,
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.dirname") as mock_dirname,
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.getcwd") as mock_getcwd,
+    ):
         mock_getcwd.return_value = "/fake/path"
         mock_dirname.return_value = "/fake"
         mock_join.return_value = "/fake/data.parquet"
-        
-        with patch.object(pd.DataFrame, "to_parquet") as mock_to_parquet:
+
+        with patch.object(pd.DataFrame, "to_parquet"):
             clean_data(data)
 
 
@@ -66,16 +67,17 @@ def test_clean_data_with_outliers():
         },
         index=dates,
     )
-    
-    with patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.join") as mock_join, \
-         patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.dirname") as mock_dirname, \
-         patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.getcwd") as mock_getcwd:
-        
+
+    with (
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.join") as mock_join,
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.dirname") as mock_dirname,
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.getcwd") as mock_getcwd,
+    ):
         mock_getcwd.return_value = "/fake/path"
         mock_dirname.return_value = "/fake"
         mock_join.return_value = "/fake/data.parquet"
-        
-        with patch.object(pd.DataFrame, "to_parquet") as mock_to_parquet:
+
+        with patch.object(pd.DataFrame, "to_parquet"):
             clean_data(data)
 
 
@@ -90,16 +92,17 @@ def test_clean_data_wednesday_selection():
         },
         index=dates,
     )
-    
-    with patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.join") as mock_join, \
-         patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.dirname") as mock_dirname, \
-         patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.getcwd") as mock_getcwd:
-        
+
+    with (
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.join") as mock_join,
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.dirname") as mock_dirname,
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.getcwd") as mock_getcwd,
+    ):
         mock_getcwd.return_value = "/fake/path"
         mock_dirname.return_value = "/fake"
         mock_join.return_value = "/fake/data.parquet"
-        
-        with patch.object(pd.DataFrame, "to_parquet") as mock_to_parquet:
+
+        with patch.object(pd.DataFrame, "to_parquet"):
             clean_data(data)
 
 
@@ -113,16 +116,17 @@ def test_clean_data_incomplete_at_start():
         },
         index=dates,
     )
-    
-    with patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.join") as mock_join, \
-         patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.dirname") as mock_dirname, \
-         patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.getcwd") as mock_getcwd:
-        
+
+    with (
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.join") as mock_join,
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.dirname") as mock_dirname,
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.getcwd") as mock_getcwd,
+    ):
         mock_getcwd.return_value = "/fake/path"
         mock_dirname.return_value = "/fake"
         mock_join.return_value = "/fake/data.parquet"
-        
-        with patch.object(pd.DataFrame, "to_parquet") as mock_to_parquet:
+
+        with patch.object(pd.DataFrame, "to_parquet"):
             clean_data(data)
             # Asset1 should be dropped
 
@@ -137,15 +141,16 @@ def test_clean_data_incomplete_at_end():
         },
         index=dates,
     )
-    
-    with patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.join") as mock_join, \
-         patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.dirname") as mock_dirname, \
-         patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.getcwd") as mock_getcwd:
-        
+
+    with (
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.join") as mock_join,
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.path.dirname") as mock_dirname,
+        patch("ifunnel.financial_data_preprocessing.clean_downloaded_data.os.getcwd") as mock_getcwd,
+    ):
         mock_getcwd.return_value = "/fake/path"
         mock_dirname.return_value = "/fake"
         mock_join.return_value = "/fake/data.parquet"
-        
-        with patch.object(pd.DataFrame, "to_parquet") as mock_to_parquet:
+
+        with patch.object(pd.DataFrame, "to_parquet"):
             clean_data(data)
             # Asset1 should be dropped

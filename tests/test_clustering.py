@@ -73,13 +73,13 @@ def test_pick_cluster_basic():
     """Test basic pick_cluster functionality."""
     np.random.seed(42)
     data = pd.DataFrame(np.random.randn(100, 6), columns=["A", "B", "C", "D", "E", "F"])
-    
+
     # Create cluster assignments
     ml = pd.DataFrame(
         {"Complete_Corr": [1, 1, 2, 2, 3, 3], "Cluster": ["Cluster 1"] * 2 + ["Cluster 2"] * 2 + ["Cluster 3"] * 2},
         index=["A", "B", "C", "D", "E", "F"],
     )
-    
+
     # Create statistics
     stat = pd.DataFrame(
         {
@@ -87,7 +87,7 @@ def test_pick_cluster_basic():
         },
         index=["A", "B", "C", "D", "E", "F"],
     )
-    
+
     ids, result = pick_cluster(data, stat, ml, n_assets=1)
     assert isinstance(ids, list)
     assert len(ids) == 3  # One from each cluster
@@ -98,18 +98,18 @@ def test_pick_cluster_with_small_cluster():
     """Test pick_cluster when a cluster has fewer assets than requested."""
     np.random.seed(42)
     data = pd.DataFrame(np.random.randn(100, 4), columns=["A", "B", "C", "D"])
-    
+
     # Create cluster assignments with one small cluster
     ml = pd.DataFrame(
         {"Complete_Corr": [1, 1, 1, 2], "Cluster": ["Cluster 1"] * 3 + ["Cluster 2"]},
         index=["A", "B", "C", "D"],
     )
-    
+
     # Create statistics
     stat = pd.DataFrame(
         {"Sharpe Ratio": [0.5, 0.6, 0.7, 0.8]},
         index=["A", "B", "C", "D"],
     )
-    
+
     ids, result = pick_cluster(data, stat, ml, n_assets=2)
     assert len(ids) == 3  # 2 from Cluster 1, 1 from Cluster 2

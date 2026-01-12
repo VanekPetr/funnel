@@ -1,8 +1,9 @@
 """Tests for AlgoStrata data fetching module."""
 
+from unittest.mock import patch
+
 import pandas as pd
 import pytest
-from unittest.mock import patch, MagicMock
 
 from ifunnel.financial_data_preprocessing.get_algostrata_data import batch, get_algostrata_data
 
@@ -36,15 +37,16 @@ def test_batch_single_element():
 
 def test_get_algostrata_data_success():
     """Test successful AlgoStrata data fetching."""
-    with patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.get") as mock_get, \
-         patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.post") as mock_post:
-        
+    with (
+        patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.get") as mock_get,
+        patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.post") as mock_post,
+    ):
         # Mock the names API response
         mock_get.return_value.json.return_value = [
             {"id": "1", "isin": "US123", "name": "Asset1"},
             {"id": "2", "isin": "US456", "name": "Asset2"},
         ]
-        
+
         # Mock the prices API response
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {
@@ -59,29 +61,28 @@ def test_get_algostrata_data_success():
                 }
             ]
         }
-        
+
         result = get_algostrata_data()
-        
+
         assert isinstance(result, pd.DataFrame)
         assert not result.empty
 
 
 def test_get_algostrata_data_with_null_price_data():
     """Test AlgoStrata data fetching with null price data."""
-    with patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.get") as mock_get, \
-         patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.post") as mock_post:
-        
+    with (
+        patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.get") as mock_get,
+        patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.post") as mock_post,
+    ):
         # Mock the names API response
         mock_get.return_value.json.return_value = [
             {"id": "1", "isin": "US123", "name": "Asset1"},
         ]
-        
+
         # Mock the prices API response with null price data
         mock_post.return_value.status_code = 200
-        mock_post.return_value.json.return_value = {
-            "result": [{"priceData": None}]
-        }
-        
+        mock_post.return_value.json.return_value = {"result": [{"priceData": None}]}
+
         # This will fail with UnboundLocalError because daily_prices is never created
         with pytest.raises(UnboundLocalError):
             get_algostrata_data()
@@ -89,19 +90,20 @@ def test_get_algostrata_data_with_null_price_data():
 
 def test_get_algostrata_data_error_response():
     """Test AlgoStrata data fetching with error response."""
-    with patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.get") as mock_get, \
-         patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.post") as mock_post:
-        
+    with (
+        patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.get") as mock_get,
+        patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.post") as mock_post,
+    ):
         # Mock the names API response
         mock_get.return_value.json.return_value = [
             {"id": "1", "isin": "US123", "name": "Asset1"},
         ]
-        
+
         # Mock an error response from prices API
         mock_post.return_value.status_code = 500
         mock_post.return_value.reason = "Internal Server Error"
         mock_post.return_value.text = "Error message"
-        
+
         # This will fail with UnboundLocalError because daily_prices is never created
         with pytest.raises(UnboundLocalError):
             get_algostrata_data()
