@@ -16,4 +16,5 @@ include:
     - book
     - renovate.json
 exclude:
-    - .github/workflows/docker.yml
+    - .github/workflows/rhiza_docker.yml
+    - tests/test_rhiza
