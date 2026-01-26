@@ -226,16 +226,26 @@ class _TradeBot:
         max_density_across_all_datasets = 0  # Initialize max density tracker
 
         for label, df in portfolio_performance_dict.items():
-            # Kernel Density Estimation for each dataset
-            kde = gaussian_kde(df["Terminal Wealth"])
-
             # Generating a range of values to evaluate the KDE
             x_min = df["Terminal Wealth"].min()
             x_max = df["Terminal Wealth"].max()
             x = np.linspace(x_min, x_max, 1000)
 
-            # Evaluate the KDE
-            density = kde(x)
+            # Kernel Density Estimation for each dataset
+            # Handle case where data has insufficient variance (singular covariance)
+            try:
+                kde = gaussian_kde(df["Terminal Wealth"])
+                density = kde(x)
+            except np.linalg.LinAlgError:
+                # Fall back to a simple histogram-based density when KDE fails
+                logger.warning(
+                    f"KDE failed for '{label}' due to insufficient variance in terminal wealth. "
+                    "Using histogram-based density estimation."
+                )
+                hist, bin_edges = np.histogram(df["Terminal Wealth"], bins=50, density=True)
+                bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+                # Interpolate to get smooth density at x values
+                density = np.interp(x, bin_centers, hist)
 
             # Update max density if current density peak is higher
             max_density_across_all_datasets = max(max_density_across_all_datasets, max(density))
