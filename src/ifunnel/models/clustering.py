@@ -101,7 +101,7 @@ def cluster(data: pd.DataFrame, n_clusters: int, dendrogram: bool = False) -> pd
     return cluster_df
 
 
-def pick_cluster(data: pd.DataFrame, stat: pd.DataFrame, ml: pd.DataFrame, n_assets: int) -> (list, pd.DataFrame):
+def pick_cluster(data: pd.DataFrame, stat: pd.DataFrame, ml: pd.DataFrame, n_assets: int) -> tuple[list, pd.DataFrame]:
     """Selects representative assets from each cluster based on performance criteria.
 
     This function selects a specified number of assets from each cluster based on their

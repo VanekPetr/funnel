@@ -88,7 +88,7 @@ def lifecycle_rebalance_model(
     solver: str,
     inaccurate: bool = True,
     lower_bound: float = 0,
-) -> (pd.Series, float):
+) -> tuple[pd.Series, float]:
     """Optimize asset allocations within a portfolio to maximize expected returns.
 
     All while adhering to a risk budget glide path.
@@ -218,7 +218,7 @@ def portfolio_rebalancing(
     transaction_cost: float,
     scenarios: pd.DataFrame,
     interest_rate: float,
-) -> (pd.DataFrame, pd.DataFrame):
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Simulate portfolio rebalancing over multiple years.
 
     Also account for withdrawals,
