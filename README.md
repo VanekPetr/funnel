@@ -5,7 +5,6 @@
 [![CI](https://github.com/tschm/funnel/actions/workflows/ci.yml/badge.svg)](https://github.com/tschm/funnel/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/tschm/funnel/badge.svg?branch=main)](https://coveralls.io/github/tschm/funnel?branch=main)
 [![Created with qCradle](https://img.shields.io/badge/Created%20with-qCradle-blue?style=flat-square)](https://github.com/tschm/package)
-[![CodeFactor](https://www.codefactor.io/repository/github/tschm/funnel/badge)](https://www.codefactor.io/repository/github/tschm/funnel)
 
 ## Getting Started
 
