@@ -111,5 +111,5 @@ def test_pick_cluster_with_small_cluster():
         index=["A", "B", "C", "D"],
     )
 
-    ids, result = pick_cluster(data, stat, ml, n_assets=2)
+    ids, _result = pick_cluster(data, stat, ml, n_assets=2)
     assert len(ids) == 3  # 2 from Cluster 1, 1 from Cluster 2

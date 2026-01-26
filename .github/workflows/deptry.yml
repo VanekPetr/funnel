@@ -42,5 +42,5 @@ jobs:
             fi
             uvx deptry "$SOURCE_FOLDER"
           else
-            printf "${YELLOW:-}[WARN] No pyproject.toml found, skipping deptry${RESET:-}\n"
+            printf '%s[WARN] No pyproject.toml found, skipping deptry%s\n' "${YELLOW:-}" "${RESET:-}"
           fi

@@ -165,7 +165,7 @@ class MomentGenerator:
         """
         # Ensure the sampling ratio is between 0 and 1
         if not (0 < sampling_ratio < 1):
-            raise ValueError("Sampling ratio must be between 0 and 1.")
+            raise ValueError("Sampling ratio must be between 0 and 1.")  # noqa: TRY003
 
         # Calculate the split index
         split_index = int(len(data) * sampling_ratio)
@@ -220,7 +220,7 @@ class MomentGenerator:
         sigma_weekly_np = np.pad(sigma_weekly_np, ((0, 1), (0, 1)), "constant")
 
         # Convert numpy arrays to pandas DataFrame/Series and set appropriate asset names
-        assets_with_rf = data.columns.tolist() + ["Cash"]
+        assets_with_rf = [*data.columns.tolist(), "Cash"]
         sigma_weekly = pd.DataFrame(sigma_weekly_np, index=assets_with_rf, columns=assets_with_rf)
         mu_weekly = pd.Series(mu_weekly_np, index=assets_with_rf)
 
@@ -423,7 +423,7 @@ class ScenarioGenerator:
             for year in range(n_years):
                 # For each year in each simulation, sample weeks and compound
                 annual_return = np.ones(n_assets)  # Start with a base of 1 for compounding
-                for week in range(weeks_per_year):
+                for _week in range(weeks_per_year):
                     # Sample a random week
                     random_week_index = self.rng.integers(0, len(historical_weekly_returns))
                     weekly_return = historical_weekly_returns.iloc[random_week_index].values

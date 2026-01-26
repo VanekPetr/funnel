@@ -25,7 +25,7 @@ def fancy_dendrogram(*args, **kwargs):
         plt.title("Hierarchical Clustering Dendrogram (truncated)")
         plt.xlabel("sample index or (cluster size)")
         plt.ylabel("distance")
-        for i, d, c in zip(d_data["icoord"], d_data["dcoord"], d_data["color_list"]):
+        for i, d, c in zip(d_data["icoord"], d_data["dcoord"], d_data["color_list"], strict=False):
             x = 0.5 * sum(i[1:3])
             y = d[1]
             if y > annotate_above:

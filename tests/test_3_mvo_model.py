@@ -43,7 +43,7 @@ def mvo_target_data(start_test_date, weekly_returns, request):
 
 
 @pytest.mark.parametrize(
-    "mvo_target_data, label",
+    ("mvo_target_data", "label"),
     [("benchmark_isin_1", "1"), ("benchmark_isin_2", "2")],
     indirect=["mvo_target_data"],
 )

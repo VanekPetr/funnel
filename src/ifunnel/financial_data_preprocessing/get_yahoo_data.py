@@ -51,6 +51,7 @@ if __name__ == "__main__":
         zip(
             data_excel["List of Top 100 ETFs"].to_list()[1:],
             data_excel["Unnamed: 1"].to_list()[1:],
+            strict=False,
         )
     )
 

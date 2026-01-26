@@ -6,7 +6,7 @@ with transaction costs and running the CVaR model over multiple periods to
 generate optimal portfolio allocations that satisfy risk constraints.
 """
 
-import pickle
+import pickle  # nosec B403
 
 import cvxpy as cp
 import numpy as np

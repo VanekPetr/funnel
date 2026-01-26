@@ -31,7 +31,7 @@ def test_calculate_risk_metrics_positive_returns():
     """Test risk metrics with all positive returns."""
     yearly_returns = pd.Series([0.05, 0.10, 0.08, 0.12, 0.06])
 
-    annual_return, annual_std_dev, sharpe_ratio, downside_std_dev, sortino_ratio = calculate_risk_metrics(
+    annual_return, annual_std_dev, sharpe_ratio, downside_std_dev, _sortino_ratio = calculate_risk_metrics(
         yearly_returns, risk_free_rate=0.02
     )
 
@@ -46,7 +46,7 @@ def test_calculate_risk_metrics_negative_returns():
     """Test risk metrics with negative returns."""
     yearly_returns = pd.Series([-0.05, -0.10, -0.02, -0.08, -0.06])
 
-    annual_return, annual_std_dev, sharpe_ratio, downside_std_dev, sortino_ratio = calculate_risk_metrics(
+    annual_return, annual_std_dev, sharpe_ratio, downside_std_dev, _sortino_ratio = calculate_risk_metrics(
         yearly_returns, risk_free_rate=0.02
     )
 
@@ -60,7 +60,7 @@ def test_calculate_risk_metrics_zero_std_dev():
     """Test risk metrics with zero standard deviation."""
     yearly_returns = pd.Series([0.05, 0.05, 0.05, 0.05, 0.05])
 
-    annual_return, annual_std_dev, sharpe_ratio, downside_std_dev, sortino_ratio = calculate_risk_metrics(
+    annual_return, annual_std_dev, sharpe_ratio, _downside_std_dev, _sortino_ratio = calculate_risk_metrics(
         yearly_returns, risk_free_rate=0.02
     )
 
@@ -74,10 +74,10 @@ def test_calculate_risk_metrics_different_risk_free_rate():
     yearly_returns = pd.Series([0.05, 0.10, -0.02, 0.08, 0.06])
 
     # Test with higher risk-free rate
-    _, _, sharpe_high, _, sortino_high = calculate_risk_metrics(yearly_returns, risk_free_rate=0.08)
+    _, _, sharpe_high, _, _sortino_high = calculate_risk_metrics(yearly_returns, risk_free_rate=0.08)
 
     # Test with lower risk-free rate
-    _, _, sharpe_low, _, sortino_low = calculate_risk_metrics(yearly_returns, risk_free_rate=0.01)
+    _, _, sharpe_low, _, _sortino_low = calculate_risk_metrics(yearly_returns, risk_free_rate=0.01)
 
     # Higher risk-free rate should result in lower Sharpe and Sortino ratios
     assert sharpe_low > sharpe_high

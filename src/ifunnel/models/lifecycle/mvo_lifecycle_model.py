@@ -237,7 +237,7 @@ def portfolio_rebalancing(
     - allocation_df: DataFrame showing asset allocations for each year.
     """
     # Initialize the number of years and assets from the targets DataFrame
-    n_years, n_assets = targets.shape
+    n_years, _n_assets = targets.shape
     years = [i + 2023 for i in range(n_years)]
     assets = targets.columns
 

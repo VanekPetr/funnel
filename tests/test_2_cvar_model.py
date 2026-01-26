@@ -28,7 +28,7 @@ def n_simulations_target():
     return 250
 
 
-@pytest.fixture()
+@pytest.fixture
 def cvar_target_data(start_test_date, weekly_returns, scgen, n_simulations_target, request):
     """Generate CVaR targets and benchmark portfolio values for testing.
 
@@ -78,7 +78,7 @@ def cvar_dir(resource_dir):
 
 
 @pytest.mark.parametrize(
-    "cvar_target_data, label",
+    ("cvar_target_data", "label"),
     [("benchmark_isin_1", "1"), ("benchmark_isin_2", "2")],
     indirect=["cvar_target_data"],
 )

@@ -6,7 +6,7 @@ rebalancing portfolios with transaction costs, and running the MVO model over
 multiple periods to generate optimal portfolio allocations.
 """
 
-import pickle
+import pickle  # nosec B403
 
 import cvxpy as cp
 import numpy as np
@@ -31,7 +31,7 @@ def cholesky_psd(m):
     Raises:
         AssertionError: If the D matrix from LDL decomposition is not diagonal.
     """
-    lu, d, perm = sp.linalg.ldl(m)
+    lu, d, _perm = sp.linalg.ldl(m)
     assert np.max(np.abs(d - np.diag(np.diag(d)))) < 1e-12, "Matrix 'd' is not diagonal!"
 
     # Do non-negativity fix

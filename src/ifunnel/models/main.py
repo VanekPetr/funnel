@@ -247,7 +247,7 @@ class _TradeBot:
                     y=density,
                     mode="lines",
                     name=label,  # Use the dictionary key as the label
-                    line=dict(width=2.5, color=next(color_cycle)),  # Assign color from Orsted-Colors
+                    line={"width": 2.5, "color": next(color_cycle)},  # Assign color from Orsted-Colors
                 )
             )
 
@@ -258,11 +258,11 @@ class _TradeBot:
             y0=0,
             x1=0,
             y1=max_density_across_all_datasets,  # Use the max density across all datasets
-            line=dict(
-                color="Black",
-                width=3,
-                dash="dash",  # Define dash pattern
-            ),
+            line={
+                "color": "Black",
+                "width": 3,
+                "dash": "dash",  # Define dash pattern
+            },
         )
         """
         # Update the layout
@@ -277,16 +277,16 @@ class _TradeBot:
         # Update the layout with larger fonts
         fig.update_layout(
             title_text="Density function(s) of the end portfolio value for various glide paths.",
-            title_font=dict(size=24),  # Increase title font size
+            title_font={"size": 24},  # Increase title font size
             xaxis_title="Target date portfolio value",
-            xaxis_title_font=dict(size=18),  # Increase x-axis title font size
-            xaxis_tickfont=dict(size=16),  # Increase x-axis tick label font size
+            xaxis_title_font={"size": 18},  # Increase x-axis title font size
+            xaxis_tickfont={"size": 16},  # Increase x-axis tick label font size
             yaxis_title="Density",
-            yaxis_title_font=dict(size=18),  # Increase y-axis title font size
-            yaxis_tickfont=dict(size=16),  # Increase y-axis tick label font size
+            yaxis_title_font={"size": 18},  # Increase y-axis title font size
+            yaxis_tickfont={"size": 16},  # Increase y-axis tick label font size
             legend_title="Risb Budget glide path",
-            legend_title_font=dict(size=18),  # Increase legend title font size
-            legend_font=dict(size=16),  # Increase legend text font size
+            legend_title_font={"size": 18},  # Increase legend title font size
+            legend_font={"size": 16},  # Increase legend text font size
             template="plotly_white",
         )
 
@@ -435,7 +435,7 @@ class _TradeBot:
         for data in stats_for_periods.values():
             data["Risk Class"] = pd.cut(
                 data["Standard Deviation of Returns"],
-                bins=[-1] + list(risk_level.values()),
+                bins=[-1, *list(risk_level.values())],
                 labels=list(risk_level.keys()),
                 right=True,
             )
@@ -577,7 +577,7 @@ class _TradeBot:
             yaxis_title="Annualised average returns",
         )
         # Position of legend
-        fig.update_layout(legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01))
+        fig.update_layout(legend={"yanchor": "bottom", "y": 0.01, "xanchor": "left", "x": 0.01})
         # fig.show()
         return fig
 
@@ -590,8 +590,8 @@ class _TradeBot:
             (self.weeklyReturns.index >= start_date) & (self.weeklyReturns.index <= end_date)
         ].copy()
 
-        for i in range(n_mst_runs):
-            subset_mst, subset_mst_df, corr_mst_avg, pdi_mst = minimum_spanning_tree(subset_mst_df)
+        for _i in range(n_mst_runs):
+            subset_mst, subset_mst_df, _corr_mst_avg, _pdi_mst = minimum_spanning_tree(subset_mst_df)
 
         # PLOTTING RESULTS
         if plot and len(subset_mst) > 0:
@@ -624,7 +624,7 @@ class _TradeBot:
         # SELECT ASSETS
         end_dataset_date = str(dataset.index.date[-1])
         clustering_stats = self.get_stat(start_date, end_dataset_date)
-        subset_clustering, subset_clustering_df = pick_cluster(
+        subset_clustering, _subset_clustering_df = pick_cluster(
             data=dataset, stat=clustering_stats, ml=clusters, n_assets=n_assets
         )  # Number of assets from each cluster
 
@@ -716,7 +716,7 @@ class _TradeBot:
         # MATHEMATICAL MODELING
         # ---------------------------------------------------------------------------------------------------
         if model == "Markowitz model":
-            port_allocation, port_value, port_cvar = mvo_model(
+            port_allocation, port_value, _port_cvar = mvo_model(
                 test_ret=test_dataset[subset_of_assets],
                 mu_lst=mu_lst,
                 sigma_lst=sigma_lst,
@@ -730,7 +730,7 @@ class _TradeBot:
         #                                                      inaccurate=inaccurate_solution)
 
         else:
-            port_allocation, port_value, port_cvar = cvar_model(
+            port_allocation, port_value, _port_cvar = cvar_model(
                 test_ret=test_dataset[subset_of_assets],
                 scenarios=scenarios,  # Scenarios
                 targets=targets,  # Target
@@ -813,7 +813,7 @@ class _TradeBot:
             )
 
         else:
-            raise ValueError(
+            raise ValueError(  # noqa: TRY003
                 "It appears that a scenario method other than MonteCarlo or Bootstrap has been chosen. "
                 "Please check for spelling mistakes."
             )
@@ -843,7 +843,7 @@ class _TradeBot:
                 f"Optimizing portfolio for {key} over {n_simulations} scenarios. An info message will "
                 f"appear, when we are halfway through the scenarios for the current strategy."
             )
-            portfolio_df, mean_allocations_df, analysis_metrics = riskadjust_model_scen(
+            portfolio_df, _mean_allocations_df, analysis_metrics = riskadjust_model_scen(
                 scen=scenarios[:, :, :],
                 targets=df,
                 budget=initial_budget,

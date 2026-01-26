@@ -67,6 +67,7 @@ def get_algostrata_data() -> pd.DataFrame:
             "X-Api-Key": settings.ALGOSTRATA_KEY,
             "content-type": "application/json",
         },
+        timeout=30,
     )
     data = response.json()  # downloaded data
     # SAVE IDs and ISIN CODES INTO LISTS
@@ -92,6 +93,7 @@ def get_algostrata_data() -> pd.DataFrame:
                 "X-Api-Key": settings.ALGOSTRATA_KEY,
                 "content-type": "application/json",
             },
+            timeout=30,
         )
 
         if response.status_code != 200:
@@ -107,8 +109,8 @@ def get_algostrata_data() -> pd.DataFrame:
             if asset["priceData"] is not None:
                 price_data = asset["priceData"]
                 reinvested_prices = price_data["reInvestedPrices"]
-                dates = list(map(lambda x: dateutil.parser.parse(x["date"]), reinvested_prices))
-                prices = list(map(lambda x: x["unit_DKK"], reinvested_prices))
+                dates = [dateutil.parser.parse(x["date"]) for x in reinvested_prices]
+                prices = [x["unit_DKK"] for x in reinvested_prices]
 
                 # IF THE FIRST RUN, THEN CREATE A TABLE
                 if first_run:
