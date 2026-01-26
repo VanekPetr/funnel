@@ -42,7 +42,7 @@ def download_data(start_date: str, end_date: str, tickers: list[str]) -> pd.Data
     return daily_prices
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # Load tickers' names
     path_to_tickers = os.path.join(os.path.dirname(os.getcwd()), "financial_data/top_2000_etfs.xlsx")
     data_excel = pd.read_excel(path_to_tickers)

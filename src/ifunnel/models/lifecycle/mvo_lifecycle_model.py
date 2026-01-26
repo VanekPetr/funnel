@@ -132,7 +132,7 @@ def lifecycle_rebalance_model(
     ]
 
     # Optional lower bound constraint
-    if lower_bound != 0:
+    if lower_bound != 0:  # pragma: no cover (requires MIP solver)
         z = cp.Variable(n, boolean=True)  # Binary variable indicates if asset is selected
         upper_bound = 100  # Arbitrary upper bound for asset weights
 

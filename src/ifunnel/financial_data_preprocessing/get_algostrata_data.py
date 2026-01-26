@@ -134,7 +134,7 @@ def get_algostrata_data() -> pd.DataFrame:
     return daily_prices
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # Download raw data
     data_algostrata = get_algostrata_data()
     # Save daily_prices into parquet file

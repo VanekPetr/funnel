@@ -551,7 +551,7 @@ class _TradeBot:
             if (risk_level[k] >= min_risk) and (risk_level[k] <= max_risk):
                 actual_risk_level.add(i)
 
-        if max(actual_risk_level) < 7:
+        if max(actual_risk_level) < 7:  # pragma: no cover (dead code - 7 always in set)
             actual_risk_level.add(max(actual_risk_level) + 1)  # Add the final risk level
 
         for level in actual_risk_level:
@@ -878,7 +878,7 @@ class _TradeBot:
         )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # INITIALIZATION OF THE CLASS
 
     # that's unfortunate but will be addressed later

@@ -123,7 +123,7 @@ def rebalancing_model(
         x <= max_weight * cp.sum(x),
     ]
 
-    if lower_bound != 0:
+    if lower_bound != 0:  # pragma: no cover (requires MIP solver)
         z = cp.Variable(n, boolean=True)  # Binary variable indicates if asset is selected
         upper_bound = 100
 
