@@ -86,9 +86,9 @@ def test_split_dataset_invalid_ratio():
     """Test split_dataset with invalid ratio."""
     np.random.seed(42)
     data = pd.DataFrame(np.random.randn(100, 5), columns=["A", "B", "C", "D", "E"])
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Sampling ratio must be between 0 and 1"):
         MomentGenerator.split_dataset(data, sampling_ratio=1.5)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Sampling ratio must be between 0 and 1"):
         MomentGenerator.split_dataset(data, sampling_ratio=0)
 
 

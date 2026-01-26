@@ -97,7 +97,7 @@ def clean_data(data_raw: pd.DataFrame) -> pd.DataFrame | None:
     )
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     daily_prices = pd.read_parquet(os.path.join(os.path.dirname(os.getcwd()), "financial_data/daily_price.parquet"))
 
     # Select just some indices

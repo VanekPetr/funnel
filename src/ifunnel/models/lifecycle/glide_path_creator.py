@@ -54,14 +54,14 @@ def generate_risk_profiles(n_periods: int, initial_risk: float, minimum_risk: fl
         showline=True,
         gridcolor="rgba(211, 211, 211, 0.5)",
         tickformat=".0%",
-        title_font=dict(size=15),
+        title_font={"size": 15},
         range=[0, initial_risk * 1.1],
     )
     # Update x-axis properties, setting it to reverse
     fig.update_xaxes(
         showgrid=False,
         showline=True,
-        title_font=dict(size=15),
+        title_font={"size": 15},
         gridcolor="rgba(211, 211, 211, 0.5)",
     )
 

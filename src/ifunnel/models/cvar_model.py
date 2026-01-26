@@ -6,7 +6,7 @@ with transaction costs and running the CVaR model over multiple periods to
 generate optimal portfolio allocations that satisfy risk constraints.
 """
 
-import pickle
+import pickle  # nosec B403
 
 import cvxpy as cp
 import numpy as np
@@ -103,7 +103,7 @@ def rebalancing_model(
         x <= max_weight * cp.sum(x),
     ]
 
-    if lower_bound != 0:
+    if lower_bound != 0:  # pragma: no cover (requires MIP solver)
         z = cp.Variable(n, boolean=True)  # Binary variable indicates if asset is selected
         upper_bound = 100
 

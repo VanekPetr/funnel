@@ -26,9 +26,9 @@ def test_moments(moments, resource_dir):
         resource_dir: Path to the directory containing baseline files.
     """
     expected_sigmas = np.load(resource_dir / "scgen/sigma_list_BASE.npz")
-    expected_sigma_list = list(expected_sigmas[k] for k in expected_sigmas)
+    expected_sigma_list = [expected_sigmas[k] for k in expected_sigmas]
     expected_mus = np.load(resource_dir / "scgen/mu_list_BASE.npz")
-    expected_mu_list = list(expected_mus[k] for k in expected_mus)
+    expected_mu_list = [expected_mus[k] for k in expected_mus]
 
     sigma_list, mu_list = moments
     # np.savez_compressed(

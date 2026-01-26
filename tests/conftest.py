@@ -35,7 +35,7 @@ def resource_fixture():
     return Path(__file__).parent / "resources"
 
 
-@pytest.fixture()
+@pytest.fixture
 def rng():
     """Provide a random number generator with a fixed seed for reproducibility.
 
@@ -46,7 +46,7 @@ def rng():
     return test_rng
 
 
-@pytest.fixture()
+@pytest.fixture
 def scgen(rng):
     """Provide a ScenarioGenerator instance for generating test scenarios.
 
@@ -242,7 +242,7 @@ def subset_of_assets(train_wide_dataset):
     """
     n_mst_runs = 2
     subset_mst_df = train_wide_dataset
-    for i in range(n_mst_runs):
+    for _i in range(n_mst_runs):
         subset_mst, subset_mst_df, _, _ = minimum_spanning_tree(subset_mst_df)
     return subset_mst
 
@@ -311,7 +311,7 @@ def n_simulations():
     return 250
 
 
-@pytest.fixture()
+@pytest.fixture
 def mc_scenarios(moments, whole_narrow_dataset, length_test_dataset, n_simulations, scgen):
     """Generate Monte Carlo scenarios for testing.
 

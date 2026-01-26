@@ -25,7 +25,7 @@ def fancy_dendrogram(*args, **kwargs):
         plt.title("Hierarchical Clustering Dendrogram (truncated)")
         plt.xlabel("sample index or (cluster size)")
         plt.ylabel("distance")
-        for i, d, c in zip(d_data["icoord"], d_data["dcoord"], d_data["color_list"]):
+        for i, d, c in zip(d_data["icoord"], d_data["dcoord"], d_data["color_list"], strict=False):
             x = 0.5 * sum(i[1:3])
             y = d[1]
             if y > annotate_above:
@@ -101,7 +101,7 @@ def cluster(data: pd.DataFrame, n_clusters: int, dendrogram: bool = False) -> pd
     return cluster_df
 
 
-def pick_cluster(data: pd.DataFrame, stat: pd.DataFrame, ml: pd.DataFrame, n_assets: int) -> (list, pd.DataFrame):
+def pick_cluster(data: pd.DataFrame, stat: pd.DataFrame, ml: pd.DataFrame, n_assets: int) -> tuple[list, pd.DataFrame]:
     """Selects representative assets from each cluster based on performance criteria.
 
     This function selects a specified number of assets from each cluster based on their

@@ -88,7 +88,7 @@ def lifecycle_rebalance_model(
     solver: str,
     inaccurate: bool = True,
     lower_bound: float = 0,
-) -> (pd.Series, float):
+) -> tuple[pd.Series, float]:
     """Optimize asset allocations within a portfolio to maximize expected returns.
 
     All while adhering to a risk budget glide path.
@@ -132,7 +132,7 @@ def lifecycle_rebalance_model(
     ]
 
     # Optional lower bound constraint
-    if lower_bound != 0:
+    if lower_bound != 0:  # pragma: no cover (requires MIP solver)
         z = cp.Variable(n, boolean=True)  # Binary variable indicates if asset is selected
         upper_bound = 100  # Arbitrary upper bound for asset weights
 
@@ -218,7 +218,7 @@ def portfolio_rebalancing(
     transaction_cost: float,
     scenarios: pd.DataFrame,
     interest_rate: float,
-) -> (pd.DataFrame, pd.DataFrame):
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Simulate portfolio rebalancing over multiple years.
 
     Also account for withdrawals,
@@ -237,7 +237,7 @@ def portfolio_rebalancing(
     - allocation_df: DataFrame showing asset allocations for each year.
     """
     # Initialize the number of years and assets from the targets DataFrame
-    n_years, n_assets = targets.shape
+    n_years, _n_assets = targets.shape
     years = [i + 2023 for i in range(n_years)]
     assets = targets.columns
 

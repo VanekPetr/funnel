@@ -51,6 +51,30 @@ include = [
     "src/ifunnel"
 ]
 
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+# Disable strict checks that are too noisy for this codebase
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_calls = false
+check_untyped_defs = false
+warn_return_any = false
+disable_error_code = [
+    "type-arg",
+    "var-annotated",
+    "union-attr",
+    "misc",
+    "return",
+    "return-value",
+    "assignment",
+    "no-any-return",
+    "no-untyped-def",
+    "no-untyped-call",
+    "import-untyped",
+]
+
 [tool.deptry.per_rule_ignores]
 DEP002 = ["clarabel","pyarrow","ecos","mosek","cvxpy-base","pydantic"]
 

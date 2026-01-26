@@ -11,7 +11,7 @@ def test_generate_risk_profiles_basic():
     initial_risk = 0.20
     minimum_risk = 0.05
 
-    df, fig = generate_risk_profiles(n_periods, initial_risk, minimum_risk)
+    df, _fig = generate_risk_profiles(n_periods, initial_risk, minimum_risk)
 
     # Check DataFrame structure
     assert isinstance(df, pd.DataFrame)
@@ -36,7 +36,7 @@ def test_generate_risk_profiles_values():
     initial_risk = 0.20
     minimum_risk = 0.05
 
-    df, fig = generate_risk_profiles(n_periods, initial_risk, minimum_risk)
+    df, _fig = generate_risk_profiles(n_periods, initial_risk, minimum_risk)
 
     # All values should be between minimum and initial risk (with small tolerance for floating point)
     assert (df["Linear GP"] >= minimum_risk - 1e-10).all()
@@ -55,7 +55,7 @@ def test_generate_risk_profiles_figure():
     initial_risk = 0.20
     minimum_risk = 0.05
 
-    df, fig = generate_risk_profiles(n_periods, initial_risk, minimum_risk)
+    _df, fig = generate_risk_profiles(n_periods, initial_risk, minimum_risk)
 
     # Check that figure is created
     assert fig is not None
@@ -72,7 +72,7 @@ def test_generate_risk_profiles_single_period():
     initial_risk = 0.20
     minimum_risk = 0.05
 
-    df, fig = generate_risk_profiles(n_periods, initial_risk, minimum_risk)
+    df, _fig = generate_risk_profiles(n_periods, initial_risk, minimum_risk)
 
     assert len(df) == 1
     # With a single period, all profiles should have the same value
@@ -85,7 +85,7 @@ def test_generate_risk_profiles_many_periods():
     initial_risk = 0.25
     minimum_risk = 0.02
 
-    df, fig = generate_risk_profiles(n_periods, initial_risk, minimum_risk)
+    df, _fig = generate_risk_profiles(n_periods, initial_risk, minimum_risk)
 
     assert len(df) == n_periods
     # Check monotonic decrease for all profiles
