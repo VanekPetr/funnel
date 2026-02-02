@@ -4,6 +4,9 @@
 # Template branch: main
 #
 # Files under template control:
+.devcontainer/README.md
+.devcontainer/bootstrap.sh
+.devcontainer/devcontainer.json
 .editorconfig
 .github/agents/agentic.mk
 .github/agents/analyser.md
