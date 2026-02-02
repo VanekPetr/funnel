@@ -11,6 +11,7 @@ import pickle  # nosec B403
 import cvxpy as cp
 import numpy as np
 import pandas as pd
+from cvxpy import sum as cp_sum  # type: ignore[attr-defined]
 from loguru import logger
 
 
@@ -91,16 +92,16 @@ def rebalancing_model(
         # - VaR deviation
         -scenarios.to_numpy() @ x - var <= vardev,
         # - CVaR limit
-        var + 1 / (t * cvar_alpha) * cp.sum(vardev) == cvar,
+        var + 1 / (t * cvar_alpha) * cp_sum(vardev) == cvar,
         cvar <= cvar_targets,
         # - Cost of rebalancing
-        c * cp.sum(absdiff) == cost,
+        c * cp_sum(absdiff) == cost,
         x - x_old <= absdiff,
         x - x_old >= -absdiff,
         # - Budget
-        x_old.sum() + cash - cp.sum(x) - cost == 0,
+        x_old.sum() + cash - cp_sum(x) - cost == 0,
         # - Concentration limits
-        x <= max_weight * cp.sum(x),
+        x <= max_weight * cp_sum(x),
     ]
 
     if lower_bound != 0:  # pragma: no cover (requires MIP solver)
@@ -109,7 +110,7 @@ def rebalancing_model(
 
         constraints.append(lower_bound * z <= x)
         constraints.append(x <= upper_bound * z)
-        constraints.append(cp.sum(z) >= 1)
+        constraints.append(cp_sum(z) >= 1)
 
     # Define model
     model = cp.Problem(objective=objective, constraints=constraints)

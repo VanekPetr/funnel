@@ -13,7 +13,7 @@ from .scenario_generation import ScenarioGenerator
 
 
 # Primal CVaR formula
-def cvar(alpha: float, p: np.array, q: np.array) -> tuple[float, float]:
+def cvar(alpha: float, p: np.ndarray, q: np.ndarray) -> tuple[float, float]:
     """Computes Conditional Value at Risk (CVaR) using the primal formula.
 
     This function calculates both Value at Risk (VaR) and Conditional Value at Risk (CVaR)

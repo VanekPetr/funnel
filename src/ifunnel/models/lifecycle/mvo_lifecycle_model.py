@@ -3,6 +3,8 @@
 import cvxpy as cp
 import numpy as np
 import pandas as pd
+from cvxpy import norm as cp_norm  # type: ignore[attr-defined]
+from cvxpy import sum as cp_sum  # type: ignore[attr-defined]
 from loguru import logger
 
 from ..mvo_model import cholesky_psd
@@ -125,10 +127,10 @@ def lifecycle_rebalance_model(
     objective = cp.Maximize(x.T @ mu)
 
     constraints = [
-        cp.sum(x) == 1,  # Weights sum to 1
-        cp.norm(g @ x, 2) <= vol_target,  # Portfolio volatility constraint
+        cp_sum(x) == 1,  # Weights sum to 1
+        cp_norm(g @ x, 2) <= vol_target,  # Portfolio volatility constraint
         # cp.quad_form(x, sigma) <= vol_target ** 2,
-        x[non_cash_indices] <= max_weight * cp.sum(x[non_cash_indices]),  # Max weight constraint for non-cash assets
+        x[non_cash_indices] <= max_weight * cp_sum(x[non_cash_indices]),  # Max weight constraint for non-cash assets
     ]
 
     # Optional lower bound constraint
@@ -139,7 +141,7 @@ def lifecycle_rebalance_model(
         constraints += [
             lower_bound * z <= x,  # Lower bound constraint
             x <= upper_bound * z,  # Upper bound enables asset deselection
-            cp.sum(z) >= 1,  # At least one asset must be selected
+            cp_sum(z) >= 1,  # At least one asset must be selected
         ]
 
     # Solve the optimization problem
