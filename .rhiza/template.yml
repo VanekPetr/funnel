@@ -4,7 +4,6 @@ include:
     - .devcontainer
     - .github
     - .rhiza
-    - tests
     - .editorconfig
     - .gitignore
     - .pre-commit-config.yaml
@@ -18,4 +17,5 @@ include:
     - renovate.json
 exclude:
     - .github/workflows/rhiza_docker.yml
+    - .github/workflows/rhiza_benchmarks.yml
     - tests/test_rhiza
