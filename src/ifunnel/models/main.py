@@ -161,7 +161,6 @@ class _TradeBot:
 
         composition = composition.loc[:, (composition != 0).any(axis=0)]
         data = []
-        idx_color = 0
         composition_color = (
             px.colors.sequential.turbid
             + px.colors.sequential.Brwnyl
@@ -173,7 +172,7 @@ class _TradeBot:
             + px.colors.sequential.Viridis
             + px.colors.sequential.Cividis
         )
-        for isin in composition.columns:
+        for idx_color, isin in enumerate(composition.columns):
             trace = go.Bar(
                 x=composition.index,
                 y=composition[isin],
@@ -181,7 +180,6 @@ class _TradeBot:
                 marker_color=composition_color[idx_color % len(composition_color)],  # custom color
             )
             data.append(trace)
-            idx_color += 1
 
         layout = go.Layout(barmode="stack")
         fig = go.Figure(data=data, layout=layout)
@@ -311,7 +309,7 @@ class _TradeBot:
             num_portfolios / cols
         )  # Calculate the number of rows needed based on the total number of compositions
 
-        subplot_titles = [f"Portfolio Composition: {name}" for name in filtered_compositions.keys()]
+        subplot_titles = [f"Portfolio Composition: {name}" for name in filtered_compositions]
         fig_subplots = make_subplots(
             rows=rows,
             cols=cols,
@@ -333,7 +331,6 @@ class _TradeBot:
             composition.columns = composition_names
             composition = composition.loc[:, (composition != 0).any(axis=0)]
 
-            idx_color = 0
             composition_color = (
                 px.colors.sequential.turbid
                 + px.colors.sequential.Brwnyl
@@ -349,7 +346,7 @@ class _TradeBot:
             # Create an individual figure for the current portfolio
             individual_fig = go.Figure()
 
-            for isin in composition.columns:
+            for idx_color, isin in enumerate(composition.columns):
                 show_legend = isin not in tickers_in_legend
                 tickers_in_legend.add(isin)
 
@@ -365,8 +362,6 @@ class _TradeBot:
                 row, col = divmod(current_plot - 1, cols)
                 fig_subplots.add_trace(trace, row=row + 1, col=col + 1)
                 individual_fig.add_trace(trace)
-
-                idx_color += 1
 
             # Configure the individual figure layout
             individual_fig.update_layout(
@@ -452,7 +447,7 @@ class _TradeBot:
         # For each data_period and each risk class, find the top 20% best performing assets
         # mark them as True in column 'Top Performer'
         for data in stats_for_periods.values():
-            for risk_class in risk_level.keys():
+            for risk_class in risk_level:
                 data.loc[
                     data["Risk Class"] == risk_class,
                     "Top Performer",

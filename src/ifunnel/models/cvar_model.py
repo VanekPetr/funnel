@@ -149,9 +149,8 @@ def rebalancing_model(
             "trans_cost": trans_cost,
             "max_weight": max_weight,
         }
-        file = open("rebalance_inputs.pkl", "wb")
-        pickle.dump(inputs, file)
-        file.close()
+        with open("rebalance_inputs.pkl", "wb") as file:
+            pickle.dump(inputs, file)
 
         # Print an error if the model is not optimal
         logger.exception(f"❌ Solver does not find optimal solution. Status code is {model.status}")

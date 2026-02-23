@@ -34,7 +34,8 @@ def cholesky_psd(m):
         AssertionError: If the D matrix from LDL decomposition is not diagonal.
     """
     lu, d, _perm = sp.linalg.ldl(m)
-    assert np.max(np.abs(d - np.diag(np.diag(d)))) < 1e-12, "Matrix 'd' is not diagonal!"
+    if np.max(np.abs(d - np.diag(np.diag(d)))) >= 1e-12:
+        raise ValueError("Matrix 'd' is not diagonal!")  # noqa: TRY003
 
     # Do non-negativity fix
     min_eig = np.min(np.diag(d))
@@ -170,9 +171,8 @@ def rebalancing_model(
             "max_weight": max_weight,
             "lower_bound": lower_bound,
         }
-        file = open("rebalance_inputs.pkl", "wb")
-        pickle.dump(inputs, file)
-        file.close()
+        with open("rebalance_inputs.pkl", "wb") as file:
+            pickle.dump(inputs, file)
 
         # Print an error if the model is not optimal
         logger.exception(f"❌ Solver does not find optimal solution. Status code is {model.status}")
