@@ -2,27 +2,10 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# Error handler with descriptive messages and remediation steps
-error_with_recovery() {
-    local step="$1"
-    local error_msg="$2"
-    local remediation="$3"
-    
-    echo "❌ ERROR: $step failed"
-    echo "   Details: $error_msg"
-    echo "   💡 Suggested fix: $remediation"
-    return 1
-}
-
 # Read Python version from .python-version (single source of truth)
 if [ -f ".python-version" ]; then
     export PYTHON_VERSION=$(cat .python-version | tr -d '[:space:]')
-    echo "✓ Using Python version from .python-version: $PYTHON_VERSION"
-else
-    error_with_recovery \
-        "Python version detection" \
-        ".python-version file not found" \
-        "Ensure .python-version file exists in repository root"
+    echo "Using Python version from .python-version: $PYTHON_VERSION"
 fi
 
 # Use INSTALL_DIR from environment or default to local bin
@@ -49,36 +32,7 @@ echo "export PATH=\"$INSTALL_DIR:\$PATH\"" >> ~/.bashrc
 # Add to current PATH so subsequent commands can find uv
 export PATH="$INSTALL_DIR:$PATH"
 
-# Install dependencies with recovery options
-echo "📦 Installing project dependencies..."
-if ! make install; then
-    error_with_recovery \
-        "Dependency installation" \
-        "make install failed" \
-        "Try: 1) Check internet connectivity, 2) Manually run 'make install' to see detailed errors, 3) Check disk space with 'df -h'"
-fi
-echo "✓ Dependencies installed successfully"
+make install
 
-# Install Marimo tool for notebook editing with fallback
-echo "📓 Installing Marimo notebook tool..."
-if ! "$UV_BIN" tool install marimo 2>/dev/null; then
-    echo "⚠️  WARNING: Marimo installation failed (non-critical)"
-    echo "   You can manually install later with: uv tool install marimo"
-    echo "   Continuing with bootstrap..."
-else
-    echo "✓ Marimo installed successfully"
-fi
-
-# Initialize pre-commit hooks if configured with fallback
-if [ -f .pre-commit-config.yaml ]; then
-    echo "🔧 Setting up pre-commit hooks..."
-    if ! "$UVX_BIN" pre-commit install 2>/dev/null; then
-        echo "⚠️  WARNING: Pre-commit hook installation failed (non-critical)"
-        echo "   You can manually install later with: uvx pre-commit install"
-        echo "   Continuing with bootstrap..."
-    else
-        echo "✓ Pre-commit hooks configured successfully"
-    fi
-fi
-
-echo "✅ Bootstrap completed successfully!"
+# Install Marimo tool for notebook editing
+"$UV_BIN" tool install marimo 

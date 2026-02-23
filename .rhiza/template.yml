@@ -6,7 +6,7 @@ templates:
     - github
     - core
     - legal
-    - test
+    - tests
     - presentation
     - book
     - marimo
