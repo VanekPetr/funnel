@@ -202,6 +202,12 @@ def git_repo(root, tmp_path, monkeypatch):
         make_d_dst = local_dir / ".rhiza" / "make.d"
         shutil.copytree(make_d_src, make_d_dst, dirs_exist_ok=True)
 
+    # Copy .rhiza/scripts/ directory (contains helper scripts like release.sh)
+    scripts_src = root / ".rhiza" / "scripts"
+    if scripts_src.is_dir():
+        scripts_dst = local_dir / ".rhiza" / "scripts"
+        shutil.copytree(scripts_src, scripts_dst, dirs_exist_ok=True)
+
     book_src = root / "book"
     book_dst = local_dir / "book"
     if book_src.is_dir():

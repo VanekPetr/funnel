@@ -3,6 +3,11 @@
 This module contains fixtures that are shared across multiple test files.
 These fixtures provide test data, model instances, and other resources
 needed for testing the various components of the ifunnel project.
+
+Security Notes:
+- S101 (assert usage): Asserts are appropriate in test code for validation.
+- S603 (subprocess calls): Any subprocess usage in tests uses explicit argument lists, not shell=True.
+- S607 (partial executable path): Known commands (e.g. git) resolved from PATH are safe in test context.
 """
 
 from pathlib import Path
