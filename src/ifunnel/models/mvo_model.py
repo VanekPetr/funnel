@@ -12,8 +12,8 @@ import cvxpy as cp
 import numpy as np
 import pandas as pd
 import scipy as sp
-from cvxpy import norm as cp_norm  # type: ignore[attr-defined]
-from cvxpy import sum as cp_sum  # type: ignore[attr-defined]
+from cvxpy import norm as cp_norm
+from cvxpy import sum as cp_sum
 from loguru import logger
 
 
@@ -267,8 +267,8 @@ def mvo_model(
 
         x_old = p_alloc * portfolio_value_w
 
-    portfolio_vty = pd.DataFrame(columns=["Volatility"], data=list_portfolio_vty)
-    portfolio_value = pd.DataFrame(columns=["Date", "Portfolio_Value"], data=list_portfolio_value).set_index(
+    portfolio_vty = pd.DataFrame(columns=["Volatility"], data=list_portfolio_vty)  # ty: ignore[invalid-argument-type]
+    portfolio_value = pd.DataFrame(columns=["Date", "Portfolio_Value"], data=list_portfolio_value).set_index(  # ty: ignore[invalid-argument-type]
         "Date", drop=True
     )
     portfolio_allocation = pd.DataFrame(columns=assets, data=list_portfolio_allocation)

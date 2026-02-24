@@ -92,7 +92,7 @@ def get_mvo_targets(
         list_targets.append(vty_target)
 
     # Generate new column so that dtype is set right.
-    targets = pd.DataFrame(columns=["Vty_Target"], data=list_targets)
+    targets = pd.DataFrame(columns=["Vty_Target"], data=list_targets)  # ty: ignore[invalid-argument-type]
 
     # COMPUTE PORTFOLIO VALUE
     list_portfolio_values = []
@@ -103,7 +103,7 @@ def get_mvo_targets(
 
     # Generate dataframe so that dtype is set right.
     portfolio_value = pd.DataFrame(
-        columns=["Benchmark_Value"],
+        columns=["Benchmark_Value"],  # ty: ignore[invalid-argument-type]
         index=test_dataset_benchmark.index,
         data=list_portfolio_values,
     )

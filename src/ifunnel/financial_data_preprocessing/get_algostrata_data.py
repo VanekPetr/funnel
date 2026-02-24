@@ -114,14 +114,14 @@ def get_algostrata_data() -> pd.DataFrame:
 
                 # IF THE FIRST RUN, THEN CREATE A TABLE
                 if first_run:
-                    daily_prices = pd.DataFrame(prices, index=dates, columns=[isin_list[0:1], name_list[0:1]])
+                    daily_prices = pd.DataFrame(prices, index=dates, columns=[isin_list[0:1], name_list[0:1]])  # ty: ignore[invalid-argument-type]
                     first_run = False
                 # IF NOT THE FIRST RUN, JUST CONCAT THE COLUMN INTO EXISTING TABLE
                 else:
                     df = pd.DataFrame(
                         prices,
-                        index=dates,
-                        columns=[
+                        index=dates,  # ty: ignore[invalid-argument-type]
+                        columns=[  # ty: ignore[invalid-argument-type]
                             isin_list[rep * batch_size + num : rep * batch_size + num + 1],
                             name_list[rep * batch_size + num : rep * batch_size + num + 1],
                         ],

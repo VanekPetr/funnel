@@ -66,7 +66,7 @@ def clean_data(data_raw: pd.DataFrame) -> pd.DataFrame | None:
         data.drop(delete_col, axis=1, inplace=True)
 
     # Select only Wednesdays to be able to compute monthly returns
-    data_wed = data[data.index.weekday == 2]
+    data_wed = data[pd.DatetimeIndex(data.index).weekday == 2]  # ty: ignore[unresolved-attribute]
 
     # Check if we have all Wednesdays' prices, if not fill it with the price 5 days in the past
     date_test = data_wed.index[0]

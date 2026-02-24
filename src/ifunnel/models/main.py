@@ -109,7 +109,7 @@ class _TradeBot:
         composition: pd.DataFrame,
         names: list[str],
         tickers: list[str],
-    ) -> tuple[px.line, go.Figure]:
+    ) -> tuple[go.Figure, go.Figure]:
         """Create performance and composition plots for backtest results.
 
         This method generates two plots:
@@ -125,7 +125,7 @@ class _TradeBot:
 
         Returns:
             Tuple containing:
-                - px.line: Line chart comparing portfolio and benchmark performance
+                - go.Figure: Line chart comparing portfolio and benchmark performance
                 - go.Figure: Stacked area chart showing portfolio composition over time
         """
         performance.index = pd.to_datetime(performance.index.values, utc=True)
@@ -404,7 +404,7 @@ class _TradeBot:
         sharpe = round(mu_ga / std_dev_a, 2)  # Sharpe ratio of each financial product
 
         # Write all results into a data frame
-        stat_df = pd.concat([mu_ga, std_dev_a, sharpe], axis=1)
+        stat_df = pd.concat([mu_ga, std_dev_a, sharpe], axis=1)  # ty: ignore[no-matching-overload]
         stat_df.columns = [
             "Average Annual Returns",
             "Standard Deviation of Returns",
@@ -470,12 +470,12 @@ class _TradeBot:
         start_date: str,
         end_date: str,
         ml: str = "",
-        ml_subset: list | pd.DataFrame = None,
+        ml_subset: list | pd.DataFrame | None = None,
         fund_set: list | None = None,
         top_performers: list | None = None,
         optimal_portfolio: list | None = None,
         benchmark: list | None = None,
-    ) -> px.scatter:
+    ) -> go.Figure:
         """METHOD TO PLOT THE OVERVIEW OF THE FINANCIAL PRODUCTS IN TERMS OF RISK AND RETURNS."""
         fund_set = fund_set if fund_set else []
         top_performers = top_performers if top_performers else []
@@ -492,10 +492,10 @@ class _TradeBot:
         # IF WE WANT TO HIGHLIGHT THE SUBSET OF ASSETS BASED ON ML
         if ml == "MST":
             data.loc[:, "Type"] = "Funds"
-            for fund in ml_subset:
+            for fund in ml_subset:  # ty: ignore[not-iterable]
                 data.loc[fund, "Type"] = "MST subset"
         if ml == "Clustering":
-            data.loc[:, "Type"] = ml_subset.loc[:, "Cluster"]
+            data.loc[:, "Type"] = ml_subset.loc[:, "Cluster"]  # ty: ignore[unresolved-attribute]
 
         # If selected any fund for comparison
         for fund in fund_set:
@@ -600,7 +600,7 @@ class _TradeBot:
 
         # PLOTTING RESULTS
         if plot and len(subset_mst) > 0:
-            end_df_date = str(subset_mst_df.index.date[-1])
+            end_df_date = str(pd.DatetimeIndex(subset_mst_df.index).date[-1])  # ty: ignore[unresolved-attribute]
             fig = self.plot_dots(
                 start_date=start_date,
                 end_date=end_df_date,
@@ -658,7 +658,7 @@ class _TradeBot:
         model: str,
         solver: str = "CLARABEL",
         lower_bound: int = 0,
-    ) -> tuple[pd.DataFrame, pd.DataFrame, px.line, go.Figure]:
+    ) -> tuple[pd.DataFrame, pd.DataFrame, go.Figure, go.Figure]:
         """METHOD TO COMPUTE THE BACKTEST."""
         # Find Benchmarks' ISIN codes
         benchmark_isin = [self.tickers[list(self.names).index(name)] for name in benchmarks]

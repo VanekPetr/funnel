@@ -148,7 +148,7 @@ def get_cvar_targets(
     list_targets = []
     for p in range(p_points):
         # create data frame with scenarios for a given period p
-        scenario_df = pd.DataFrame(target_scenarios[p, :, :], columns=tickers, index=list(range(s_points)))
+        scenario_df = pd.DataFrame(target_scenarios[p, :, :], columns=tickers, index=list(range(s_points)))  # ty: ignore[invalid-argument-type]
 
         # run CVaR model to compute CVaR targets
         cvar_target = portfolio_risk_target(scenarios=scenario_df, cvar_alpha=cvar_alpha)
@@ -156,7 +156,7 @@ def get_cvar_targets(
         list_targets.append(cvar_target)
 
     # Generate new column so that dtype is set right.
-    targets = pd.DataFrame(columns=["CVaR_Target"], data=list_targets)
+    targets = pd.DataFrame(columns=["CVaR_Target"], data=list_targets)  # ty: ignore[invalid-argument-type]
 
     # COMPUTE PORTFOLIO VALUE
     list_portfolio_values = []
@@ -167,7 +167,7 @@ def get_cvar_targets(
 
     # Generate dataframe so that dtype is set right.
     portfolio_value = pd.DataFrame(
-        columns=["Benchmark_Value"],
+        columns=["Benchmark_Value"],  # ty: ignore[invalid-argument-type]
         index=test_dataset_benchmark.index,
         data=list_portfolio_values,
     )
