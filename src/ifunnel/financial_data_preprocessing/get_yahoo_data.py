@@ -57,6 +57,8 @@ if __name__ == "__main__":  # pragma: no cover
 
     # Download raw data
     data_yahoo = download_data(start_date="2022-12-31", end_date="2023-07-30", tickers=tickers)
+    if data_yahoo is None:
+        raise ValueError("Failed to download Yahoo data")  # noqa: TRY003
     data_yahoo.columns = [
         data_yahoo.columns,
         [mapping[col] for col in data_yahoo.columns],
