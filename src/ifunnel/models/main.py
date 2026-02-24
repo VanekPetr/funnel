@@ -109,7 +109,7 @@ class _TradeBot:
         composition: pd.DataFrame,
         names: list[str],
         tickers: list[str],
-    ) -> tuple[px.line, go.Figure]:
+    ) -> tuple[go.Figure, go.Figure]:
         """Create performance and composition plots for backtest results.
 
         This method generates two plots:
@@ -125,7 +125,7 @@ class _TradeBot:
 
         Returns:
             Tuple containing:
-                - px.line: Line chart comparing portfolio and benchmark performance
+                - go.Figure: Line chart comparing portfolio and benchmark performance
                 - go.Figure: Stacked area chart showing portfolio composition over time
         """
         performance.index = pd.to_datetime(performance.index.values, utc=True)
@@ -161,7 +161,6 @@ class _TradeBot:
 
         composition = composition.loc[:, (composition != 0).any(axis=0)]
         data = []
-        idx_color = 0
         composition_color = (
             px.colors.sequential.turbid
             + px.colors.sequential.Brwnyl
@@ -173,7 +172,7 @@ class _TradeBot:
             + px.colors.sequential.Viridis
             + px.colors.sequential.Cividis
         )
-        for isin in composition.columns:
+        for idx_color, isin in enumerate(composition.columns):
             trace = go.Bar(
                 x=composition.index,
                 y=composition[isin],
@@ -181,7 +180,6 @@ class _TradeBot:
                 marker_color=composition_color[idx_color % len(composition_color)],  # custom color
             )
             data.append(trace)
-            idx_color += 1
 
         layout = go.Layout(barmode="stack")
         fig = go.Figure(data=data, layout=layout)
@@ -311,7 +309,7 @@ class _TradeBot:
             num_portfolios / cols
         )  # Calculate the number of rows needed based on the total number of compositions
 
-        subplot_titles = [f"Portfolio Composition: {name}" for name in filtered_compositions.keys()]
+        subplot_titles = [f"Portfolio Composition: {name}" for name in filtered_compositions]
         fig_subplots = make_subplots(
             rows=rows,
             cols=cols,
@@ -333,7 +331,6 @@ class _TradeBot:
             composition.columns = composition_names
             composition = composition.loc[:, (composition != 0).any(axis=0)]
 
-            idx_color = 0
             composition_color = (
                 px.colors.sequential.turbid
                 + px.colors.sequential.Brwnyl
@@ -349,7 +346,7 @@ class _TradeBot:
             # Create an individual figure for the current portfolio
             individual_fig = go.Figure()
 
-            for isin in composition.columns:
+            for idx_color, isin in enumerate(composition.columns):
                 show_legend = isin not in tickers_in_legend
                 tickers_in_legend.add(isin)
 
@@ -365,8 +362,6 @@ class _TradeBot:
                 row, col = divmod(current_plot - 1, cols)
                 fig_subplots.add_trace(trace, row=row + 1, col=col + 1)
                 individual_fig.add_trace(trace)
-
-                idx_color += 1
 
             # Configure the individual figure layout
             individual_fig.update_layout(
@@ -409,7 +404,7 @@ class _TradeBot:
         sharpe = round(mu_ga / std_dev_a, 2)  # Sharpe ratio of each financial product
 
         # Write all results into a data frame
-        stat_df = pd.concat([mu_ga, std_dev_a, sharpe], axis=1)
+        stat_df = pd.concat([mu_ga, std_dev_a, sharpe], axis=1)  # ty: ignore[no-matching-overload]
         stat_df.columns = [
             "Average Annual Returns",
             "Standard Deviation of Returns",
@@ -452,7 +447,7 @@ class _TradeBot:
         # For each data_period and each risk class, find the top 20% best performing assets
         # mark them as True in column 'Top Performer'
         for data in stats_for_periods.values():
-            for risk_class in risk_level.keys():
+            for risk_class in risk_level:
                 data.loc[
                     data["Risk Class"] == risk_class,
                     "Top Performer",
@@ -475,12 +470,12 @@ class _TradeBot:
         start_date: str,
         end_date: str,
         ml: str = "",
-        ml_subset: list | pd.DataFrame = None,
+        ml_subset: list | pd.DataFrame | None = None,
         fund_set: list | None = None,
         top_performers: list | None = None,
         optimal_portfolio: list | None = None,
         benchmark: list | None = None,
-    ) -> px.scatter:
+    ) -> go.Figure:
         """METHOD TO PLOT THE OVERVIEW OF THE FINANCIAL PRODUCTS IN TERMS OF RISK AND RETURNS."""
         fund_set = fund_set if fund_set else []
         top_performers = top_performers if top_performers else []
@@ -497,10 +492,10 @@ class _TradeBot:
         # IF WE WANT TO HIGHLIGHT THE SUBSET OF ASSETS BASED ON ML
         if ml == "MST":
             data.loc[:, "Type"] = "Funds"
-            for fund in ml_subset:
+            for fund in ml_subset:  # ty: ignore[not-iterable]
                 data.loc[fund, "Type"] = "MST subset"
         if ml == "Clustering":
-            data.loc[:, "Type"] = ml_subset.loc[:, "Cluster"]
+            data.loc[:, "Type"] = ml_subset.loc[:, "Cluster"]  # ty: ignore[unresolved-attribute]
 
         # If selected any fund for comparison
         for fund in fund_set:
@@ -605,7 +600,7 @@ class _TradeBot:
 
         # PLOTTING RESULTS
         if plot and len(subset_mst) > 0:
-            end_df_date = str(subset_mst_df.index.date[-1])
+            end_df_date = str(pd.DatetimeIndex(subset_mst_df.index).date[-1])  # ty: ignore[unresolved-attribute]
             fig = self.plot_dots(
                 start_date=start_date,
                 end_date=end_df_date,
@@ -663,7 +658,7 @@ class _TradeBot:
         model: str,
         solver: str = "CLARABEL",
         lower_bound: int = 0,
-    ) -> tuple[pd.DataFrame, pd.DataFrame, px.line, go.Figure]:
+    ) -> tuple[pd.DataFrame, pd.DataFrame, go.Figure, go.Figure]:
         """METHOD TO COMPUTE THE BACKTEST."""
         # Find Benchmarks' ISIN codes
         benchmark_isin = [self.tickers[list(self.names).index(name)] for name in benchmarks]

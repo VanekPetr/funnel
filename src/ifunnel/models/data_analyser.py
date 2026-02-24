@@ -92,7 +92,7 @@ def get_weekly_returns(data: pd.DataFrame) -> pd.DataFrame:
     # DEFINE IF WE WORK WITH ISIN CODES OR NAMES OF MUTUAL FUNDS
     prices_df = data
     # MODIFY THE DATA
-    prices_on_wed = prices_df[prices_df.index.weekday == 2]  # Only wednesdays
+    prices_on_wed = prices_df[pd.DatetimeIndex(prices_df.index).weekday == 2]  # ty: ignore[unresolved-attribute] # Only wednesdays
 
     # Get weekly returns
     weekly_returns = prices_on_wed.pct_change()

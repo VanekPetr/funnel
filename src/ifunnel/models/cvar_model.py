@@ -11,7 +11,7 @@ import pickle  # nosec B403
 import cvxpy as cp
 import numpy as np
 import pandas as pd
-from cvxpy import sum as cp_sum  # type: ignore[attr-defined]
+from cvxpy import sum as cp_sum
 from loguru import logger
 
 
@@ -149,9 +149,8 @@ def rebalancing_model(
             "trans_cost": trans_cost,
             "max_weight": max_weight,
         }
-        file = open("rebalance_inputs.pkl", "wb")
-        pickle.dump(inputs, file)
-        file.close()
+        with open("rebalance_inputs.pkl", "wb") as file:
+            pickle.dump(inputs, file)
 
         # Print an error if the model is not optimal
         logger.exception(f"❌ Solver does not find optimal solution. Status code is {model.status}")
@@ -223,7 +222,7 @@ def cvar_model(
         expected_returns = sum(prob * scenarios_df.loc[i, :] for i in scenarios_df.index)
 
         # run CVaR model
-        p_alloc, cvar_val, port_val, cash = rebalancing_model(
+        p_alloc, cvar_val, port_val, cash = rebalancing_model(  # ty: ignore[not-iterable]
             mu=expected_returns,
             scenarios=scenarios_df,
             cvar_targets=targets.loc[p, "CVaR_Target"] * portfolio_value_w,
@@ -250,8 +249,8 @@ def cvar_model(
 
         x_old = p_alloc * portfolio_value_w
 
-    portfolio_cvar = pd.DataFrame(columns=["CVaR"], data=list_portfolio_cvar)
-    portfolio_value = pd.DataFrame(columns=["Date", "Portfolio_Value"], data=list_portfolio_value).set_index(
+    portfolio_cvar = pd.DataFrame(columns=["CVaR"], data=list_portfolio_cvar)  # ty: ignore[invalid-argument-type]
+    portfolio_value = pd.DataFrame(columns=["Date", "Portfolio_Value"], data=list_portfolio_value).set_index(  # ty: ignore[invalid-argument-type]
         "Date", drop=True
     )
     portfolio_allocation = pd.DataFrame(columns=assets, data=list_portfolio_allocation)

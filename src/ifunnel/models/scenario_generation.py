@@ -221,7 +221,7 @@ class MomentGenerator:
 
         # Convert numpy arrays to pandas DataFrame/Series and set appropriate asset names
         assets_with_rf = [*data.columns.tolist(), "Cash"]
-        sigma_weekly = pd.DataFrame(sigma_weekly_np, index=assets_with_rf, columns=assets_with_rf)
+        sigma_weekly = pd.DataFrame(sigma_weekly_np, index=assets_with_rf, columns=assets_with_rf)  # ty: ignore[invalid-argument-type]
         mu_weekly = pd.Series(mu_weekly_np, index=assets_with_rf)
 
         # Annualize the covariance matrix and mean return array

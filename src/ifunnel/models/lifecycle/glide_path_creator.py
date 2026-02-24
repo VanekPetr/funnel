@@ -8,9 +8,10 @@ decreases as an investor approaches retirement or another financial goal.
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 
-def generate_risk_profiles(n_periods: int, initial_risk: float, minimum_risk: float) -> tuple[pd.DataFrame, px.line]:
+def generate_risk_profiles(n_periods: int, initial_risk: float, minimum_risk: float) -> tuple[pd.DataFrame, go.Figure]:
     """Generate risk profiles for lifecycle investment glide paths.
 
     This function creates three different risk profile patterns (linear, concave, and convex)
@@ -25,7 +26,7 @@ def generate_risk_profiles(n_periods: int, initial_risk: float, minimum_risk: fl
     Returns:
         Tuple containing:
             - pd.DataFrame: DataFrame with the risk values for each period and profile type
-            - px.line: Plotly line chart visualizing the different risk profiles
+            - go.Figure: Plotly line chart visualizing the different risk profiles
     """
     df = pd.DataFrame(index=range(n_periods))
     x_values = np.linspace(0, 1, n_periods)

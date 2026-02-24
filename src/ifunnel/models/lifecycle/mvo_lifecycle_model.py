@@ -3,8 +3,8 @@
 import cvxpy as cp
 import numpy as np
 import pandas as pd
-from cvxpy import norm as cp_norm  # type: ignore[attr-defined]
-from cvxpy import sum as cp_sum  # type: ignore[attr-defined]
+from cvxpy import norm as cp_norm
+from cvxpy import sum as cp_sum
 from loguru import logger
 
 from ..mvo_model import cholesky_psd
@@ -12,7 +12,7 @@ from ..mvo_model import cholesky_psd
 
 def calculate_risk_metrics(
     yearly_returns: pd.Series, risk_free_rate: float = 0.02
-) -> tuple[float, float, float, float, float]:
+) -> tuple[float, float, float | None, float, float | None]:
     """Calculate risk metrics for a given set of yearly returns.
 
     This function computes various risk and performance metrics based on a series
@@ -83,7 +83,7 @@ def calculate_analysis_metrics(terminal_values: pd.Series) -> pd.DataFrame:
 
 
 def lifecycle_rebalance_model(
-    mu: pd.DataFrame,
+    mu: pd.Series,
     sigma: pd.DataFrame,
     vol_target: float,
     max_weight: float,
@@ -96,7 +96,7 @@ def lifecycle_rebalance_model(
     All while adhering to a risk budget glide path.
 
     Parameters:
-    - mu: Expected returns for each asset.
+    - mu: Expected returns for each asset as a Series.
     - sigma: Covariance matrix of asset returns.
     - vol_target: Target portfolio volatility for period.
     - max_weight: Maximum weight allowed for any single asset (excluding cash).
@@ -169,7 +169,7 @@ def lifecycle_rebalance_model(
 
 
 def get_port_allocations(
-    mu_lst: pd.DataFrame,
+    mu_lst: pd.Series,
     sigma_lst: pd.DataFrame,
     targets: pd.DataFrame,
     max_weight: float,
@@ -196,7 +196,7 @@ def get_port_allocations(
     assets = mu_lst.index
 
     # Initialize DataFrames
-    allocation_df = pd.DataFrame(index=years, columns=assets)
+    allocation_df = pd.DataFrame(index=years, columns=assets)  # ty: ignore[invalid-argument-type]
 
     for year in range(num_years):
         port_weights, _ = lifecycle_rebalance_model(
@@ -254,10 +254,10 @@ def portfolio_rebalancing(
         "Absolute DKK Rebalanced",
         "Borrowed Amount",
     ]
-    ptf_performance = pd.DataFrame(index=years, columns=ptf_performance_columns)
+    ptf_performance = pd.DataFrame(index=years, columns=ptf_performance_columns)  # ty: ignore[invalid-argument-type]
 
     # DataFrame for tracking asset allocations each year
-    allocation_df = pd.DataFrame(0, index=years, columns=assets, dtype=float)
+    allocation_df = pd.DataFrame(0, index=years, columns=assets, dtype=float)  # ty: ignore[invalid-argument-type]
 
     # Initialize portfolio values
     default_year, borrowed_amount, interest_for_the_year = 0, 0, 0
@@ -366,7 +366,7 @@ def riskadjust_model_scen(
 
     # Initialize DataFrame to hold portfolio performance metrics for each scenario
     portfolio_df = pd.DataFrame(
-        columns=[
+        columns=[  # ty: ignore[invalid-argument-type]
             "Terminal Wealth",
             "Total Returns",
             "Total Costs",
