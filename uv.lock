@@ -763,16 +763,16 @@ wheels = [
 
 [[package]]
 name = "mosek"
-version = "11.1.6"
+version = "11.1.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/63/8c/6c3e40cdac55de3dd16fc42d6c33553339e062aa8384a1ad062c4b35e4a7/mosek-11.1.6-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:511ac290926eff992f756360c61975c38c79e1ffeb09011cb2ed49aabcbcc4f0", size = 8791883, upload-time = "2026-02-12T21:58:34.399Z" },
-    { url = "https://files.pythonhosted.org/packages/8a/7f/76697c377e543dcf01b8ae6198ac429b88a4187047fdc722e83553ee46bb/mosek-11.1.6-cp39-abi3-manylinux2014_x86_64.whl", hash = "sha256:1444229ff2fa7ec837b0f0851f0f2471cea3e70ff26690abf22f98ae7e2813e6", size = 15361449, upload-time = "2026-02-12T21:58:38.145Z" },
-    { url = "https://files.pythonhosted.org/packages/37/c8/692dec8eb99c7b2359cc381b6f81e51e32fb422ec599cd109e8c7afaa405/mosek-11.1.6-cp39-abi3-manylinux_2_27_aarch64.whl", hash = "sha256:416e84798e0d48595a61f60b36e4958ffd76db8ba560122e2926963ac5d52e11", size = 11075490, upload-time = "2026-02-12T21:58:41.017Z" },
-    { url = "https://files.pythonhosted.org/packages/43/ba/57c5d60c47594218a54d6f0ca68a5583428bc535473eb5ea43d4079cd411/mosek-11.1.6-cp39-abi3-win_amd64.whl", hash = "sha256:a76430d98234a103c9e48c978c93c650a41477923e50682b3bf5c169c4713fb4", size = 11192704, upload-time = "2026-02-12T21:58:43.189Z" },
+    { url = "https://files.pythonhosted.org/packages/3e/a8/c3b793abe5829ae59bfad3fb5afa17828b0fd50068c0a23260e13855adc3/mosek-11.1.7-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:2c069e161e0571cf1d2050c21e194e4bc6fd8e1b2d9357fabb0c819b519f7c4d", size = 8792820, upload-time = "2026-03-02T12:27:47.195Z" },
+    { url = "https://files.pythonhosted.org/packages/53/66/7dc8716a5133d19ee02e9f3e08ad383626372ebbba4ae08a6e0ea7cb929c/mosek-11.1.7-cp39-abi3-manylinux2014_x86_64.whl", hash = "sha256:47f6a5218e62997a5c455db0a369c8979b70d4cef30d7b14f3e440e7c3168334", size = 15360140, upload-time = "2026-03-02T12:27:50.672Z" },
+    { url = "https://files.pythonhosted.org/packages/fa/b5/f338bb6e6f83de90b7b480276842c18a6fd7a8f677bebba2ddd73c44c7c8/mosek-11.1.7-cp39-abi3-manylinux_2_27_aarch64.whl", hash = "sha256:1597c51993a7747f47eb55119f183035300a0d62c721865a3652a166fc4c5665", size = 11074984, upload-time = "2026-03-02T12:27:53.516Z" },
+    { url = "https://files.pythonhosted.org/packages/23/01/51a60f92e3f5377f3ac46631d8c7805a46a4ffc081857870045f446f1d53/mosek-11.1.7-cp39-abi3-win_amd64.whl", hash = "sha256:2e9a68ec23ec442df4120358ce0c9728ab8330f3738f67ccb7c677d4bd8d7979", size = 11194216, upload-time = "2026-03-02T12:27:55.767Z" },
 ]
 
 [[package]]
@@ -1099,15 +1099,15 @@ wheels = [
 
 [[package]]
 name = "plotly"
-version = "6.5.2"
+version = "6.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "narwhals" },
     { name = "packaging" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e3/4f/8a10a9b9f5192cb6fdef62f1d77fa7d834190b2c50c0cd256bd62879212b/plotly-6.5.2.tar.gz", hash = "sha256:7478555be0198562d1435dee4c308268187553cc15516a2f4dd034453699e393", size = 7015695, upload-time = "2026-01-14T21:26:51.222Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/24/fb/41efe84970cfddefd4ccf025e2cbfafe780004555f583e93dba3dac2cdef/plotly-6.6.0.tar.gz", hash = "sha256:b897f15f3b02028d69f755f236be890ba950d0a42d7dfc619b44e2d8cea8748c", size = 7027956, upload-time = "2026-03-02T21:10:25.321Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8a/67/f95b5460f127840310d2187f916cf0023b5875c0717fdf893f71e1325e87/plotly-6.5.2-py3-none-any.whl", hash = "sha256:91757653bd9c550eeea2fa2404dba6b85d1e366d54804c340b2c874e5a7eb4a4", size = 9895973, upload-time = "2026-01-14T21:26:47.135Z" },
+    { url = "https://files.pythonhosted.org/packages/52/d2/c6e44dba74f17c6216ce1b56044a9b93a929f1c2d5bdaff892512b260f5e/plotly-6.6.0-py3-none-any.whl", hash = "sha256:8d6daf0f87412e0c0bfe72e809d615217ab57cc715899a1e5145135a7800d1d0", size = 9910315, upload-time = "2026-03-02T21:10:18.131Z" },
 ]
 
 [[package]]
@@ -1382,11 +1382,11 @@ wheels = [
 
 [[package]]
 name = "python-dotenv"
-version = "1.2.1"
+version = "1.2.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f0/26/19cadc79a718c5edbec86fd4919a6b6d3f681039a2f6d66d14be94e75fb9/python_dotenv-1.2.1.tar.gz", hash = "sha256:42667e897e16ab0d66954af0e60a9caa94f0fd4ecf3aaf6d2d260eec1aa36ad6", size = 44221, upload-time = "2025-10-26T15:12:10.434Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/82/ed/0301aeeac3e5353ef3d94b6ec08bbcabd04a72018415dcb29e588514bba8/python_dotenv-1.2.2.tar.gz", hash = "sha256:2c371a91fbd7ba082c2c1dc1f8bf89ca22564a087c2c287cd9b662adde799cf3", size = 50135, upload-time = "2026-03-01T16:00:26.196Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/14/1b/a298b06749107c305e1fe0f814c6c74aea7b2f1e10989cb30f544a1b3253/python_dotenv-1.2.1-py3-none-any.whl", hash = "sha256:b81ee9561e9ca4004139c6cbba3a238c32b03e4894671e181b671e8cb8425d61", size = 21230, upload-time = "2025-10-26T15:12:09.109Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/d7/1959b9648791274998a9c3526f6d0ec8fd2233e4d4acce81bbae76b44b2a/python_dotenv-1.2.2-py3-none-any.whl", hash = "sha256:1d8214789a24de455a8b8bd8ae6fe3c6b69a5e3d64aa8a8e5d68e694bbcb285a", size = 22101, upload-time = "2026-03-01T16:00:25.09Z" },
 ]
 
 [[package]]
