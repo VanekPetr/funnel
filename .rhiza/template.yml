@@ -1,32 +1,9 @@
 repository: "jebel-quant/rhiza"
-ref: "v0.8.0"
+ref: "v0.8.13"
 
 templates:
     - devcontainer
     - github
-    - core
     - legal
     - tests
-    - presentation
-    - book
     - marimo
-    
-#include:
-#    - .devcontainer
-#    - .github
-#    - .rhiza
-#    - .editorconfig
-#    - .gitignore
-#    - .pre-commit-config.yaml
-#    - CODE_OF_CONDUCT.md
-#    - CONTRIBUTING.md
-#    - Makefile
-#    - ruff.toml
-#    - pytest.ini
-#    - presentation
-#    - book
-#    - renovate.json
-#exclude:
-#    - .github/workflows/rhiza_docker.yml
-#    - .github/workflows/rhiza_benchmarks.yml
-#    - tests/test_rhiza
