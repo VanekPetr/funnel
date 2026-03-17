@@ -14,8 +14,11 @@ marimo-validate: install ## validate all Marimo notebooks can run
 	  for notebook in ${MARIMO_FOLDER}/*.py; do \
 	    if [ -f "$$notebook" ]; then \
 	      notebook_name=$$(basename "$$notebook"); \
-	      printf "${BLUE}[INFO] Validating $$notebook_name...${RESET}\n"; \
-	      if ${UV_BIN} run "$$notebook" > /dev/null 2>&1; then \
+	      notebook_stem=$$(basename "$$notebook" .py); \
+	      artefact_folder="results/$$notebook_stem"; \
+	      mkdir -p "$$artefact_folder"; \
+	      printf "${BLUE}[INFO] Validating $$notebook_name (artefacts → $$artefact_folder)...${RESET}\n"; \
+	      if NOTEBOOK_OUTPUT_FOLDER="$$artefact_folder" ${UV_BIN} run "$$notebook" > /dev/null 2>&1; then \
 	        printf "${GREEN}[SUCCESS] $$notebook_name is valid${RESET}\n"; \
 	      else \
 	        printf "${RED}[ERROR] $$notebook_name failed validation${RESET}\n"; \
@@ -35,7 +38,7 @@ marimo: install ## fire up Marimo server
 	@if [ ! -d "${MARIMO_FOLDER}" ]; then \
 	  printf " ${YELLOW}[WARN] Marimo folder '${MARIMO_FOLDER}' not found, skipping start${RESET}\n"; \
 	else \
-	  ${UV_BIN} run --with marimo marimo edit --no-token --headless "${MARIMO_FOLDER}"; \
+	  ${UV_BIN} run --no-project --with marimo --directory "${MARIMO_FOLDER}" marimo edit --no-token --headless; \
 	fi
 
 # The 'marimushka' target exports Marimo notebooks (.py files) to static HTML.
@@ -61,7 +64,7 @@ marimushka:: install-uv ## export Marimo notebooks to HTML
 	    OUTPUT_DIR="$$CURRENT_DIR/${MARIMUSHKA_OUTPUT}"; \
 	    cd "${MARIMO_FOLDER}" && \
 	    UVX_DIR=$$(dirname "$$(command -v uvx || echo "${INSTALL_DIR}/uvx")") && \
-	    "${UVX_BIN}" "marimushka>=0.1.9" export --notebooks "." --output "$$OUTPUT_DIR" --bin-path "$$UVX_DIR" && \
+	    "${UVX_BIN}" "marimushka>=0.3.3" export --notebooks "." --output "$$OUTPUT_DIR" --bin-path "$$UVX_DIR" && \
 	    cd "$$CURRENT_DIR"; \
 	  fi; \
 	fi
