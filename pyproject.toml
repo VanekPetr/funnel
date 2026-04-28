@@ -13,7 +13,7 @@ dependencies = [
     "cvxpy-base>=1.6.1",
     "python-dotenv>=1.1.1",
     "loguru>=0.7.3",
-    "matplotlib>=3.10.0",
+    "matplotlib>=3.10.9",
     "mosek>=11.1.11",
     "networkx>=3.4.2",
     "numpy>=2.3.0",
@@ -34,7 +34,7 @@ repository = "https://github.com/tschm/funnel"
 
 [dependency-groups]
 dev = [
-    "marimo>=0.23.2",
+    "marimo>=0.23.3",
 ]
 
 [build-system]
