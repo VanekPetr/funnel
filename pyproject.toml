@@ -34,7 +34,7 @@ repository = "https://github.com/tschm/funnel"
 
 [dependency-groups]
 dev = [
-    "marimo>=0.23.8",
+    "marimo>=0.23.9",
 ]
 
 [build-system]
