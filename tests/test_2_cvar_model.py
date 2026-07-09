@@ -110,6 +110,9 @@ def test_get_cvar_targets(cvar_target_data, label, cvar_dir):
     pd.testing.assert_frame_equal(benchmark_port_val, expected_benchmark_port_val)
 
 
+# The CVaR optimization over the full scenario set is a heavy CLARABEL solve that
+# can exceed the global 60s per-test timeout on slower CI runners; give it headroom.
+@pytest.mark.timeout(300)
 @pytest.mark.parametrize("cvar_target_data", ["benchmark_isin_2"], indirect=True)
 def test_cvar_model(test_narrow_dataset, mc_scenarios, cvar_target_data, resource_dir, cvar_dir):
     """Test the CVaR model optimization functionality.

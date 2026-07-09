@@ -75,6 +75,9 @@ def test_get_mvo_targets(mvo_target_data, label, resource_dir):
     pd.testing.assert_frame_equal(benchmark_port_val, expected_benchmark_port_val)
 
 
+# Heavy multi-period optimization solve; can exceed the global 60s per-test
+# timeout on slower CI runners, so grant it extra headroom.
+@pytest.mark.timeout(300)
 @pytest.mark.parametrize("mvo_target_data", ["benchmark_isin_2"], indirect=True)
 def test_mvo_model(test_narrow_dataset, moments, mvo_target_data, resource_dir):
     """Test the MVO model optimization functionality.
