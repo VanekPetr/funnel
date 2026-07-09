@@ -7,19 +7,15 @@ The module supports backtesting, scenario analysis, and lifecycle investment mod
 """
 
 from functools import lru_cache
-from itertools import cycle
-from math import ceil
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 from loguru import logger
-from plotly.subplots import make_subplots
-from scipy.stats import gaussian_kde
 
+from . import plotting
 from .clustering import cluster, pick_cluster
 from .cvar_model import cvar_model
 from .cvar_targets import get_cvar_targets
@@ -110,92 +106,13 @@ class _TradeBot:
         names: list[str],
         tickers: list[str],
     ) -> tuple[go.Figure, go.Figure]:
-        """Create performance and composition plots for backtest results.
+        """Build the backtest performance and composition figures.
 
-        This method generates two plots:
-        1. A line chart comparing the optimized portfolio performance against the benchmark
-        2. A stacked area chart showing the portfolio composition over time
-
-        Args:
-            performance: DataFrame with portfolio values over time
-            performance_benchmark: DataFrame with benchmark portfolio values over time
-            composition: DataFrame with portfolio weights for each asset over time
-            names: List of human-readable asset names
-            tickers: List of ticker symbols corresponding to the names
-
-        Returns:
-            Tuple containing:
-                - go.Figure: Line chart comparing portfolio and benchmark performance
-                - go.Figure: Stacked area chart showing portfolio composition over time
+        Thin wrapper over :func:`plotting.plot_backtest` (kept on the class so
+        the plotting logic lives in one module while the public/test call
+        surface is preserved).
         """
-        performance.index = pd.to_datetime(performance.index.values, utc=True)
-
-        # ** PERFORMANCE GRAPH **
-        try:
-            df_to_plot = pd.concat([performance, performance_benchmark], axis=1)
-        except Exception:  # noqa: BLE001  # fall back to legacy date handling on any concat failure
-            logger.warning("⚠️ Old data format.")
-            performance.index = [date.date() for date in performance.index]  # needed for old data
-            df_to_plot = pd.concat([performance, performance_benchmark], axis=1)
-
-        color_discrete_map = {
-            "Portfolio_Value": "#21304f",
-            "Benchmark_Value": "#f58f02",
-        }
-        fig = px.line(
-            df_to_plot,
-            x=df_to_plot.index,
-            y=df_to_plot.columns,
-            title="Comparison of different strategies",
-            color_discrete_map=color_discrete_map,
-        )
-        fig_performance = fig
-
-        # ** COMPOSITION GRAPH **
-        # change ISIN to NAMES in allocation df
-        composition_names = []
-        for ticker in composition.columns:
-            ticker_index = list(tickers).index(ticker)
-            composition_names.append(list(names)[ticker_index])
-        composition.columns = composition_names
-
-        composition = composition.loc[:, (composition != 0).any(axis=0)]
-        data = []
-        composition_color = (
-            px.colors.sequential.turbid
-            + px.colors.sequential.Brwnyl
-            + px.colors.sequential.YlOrBr
-            + px.colors.sequential.gray
-            + px.colors.sequential.Mint
-            + px.colors.sequential.dense
-            + px.colors.sequential.Plasma
-            + px.colors.sequential.Viridis
-            + px.colors.sequential.Cividis
-        )
-        for idx_color, isin in enumerate(composition.columns):
-            trace = go.Bar(
-                x=composition.index,
-                y=composition[isin],
-                name=str(isin),
-                marker_color=composition_color[idx_color % len(composition_color)],  # custom color
-            )
-            data.append(trace)
-
-        layout = go.Layout(barmode="stack")
-        fig = go.Figure(data=data, layout=layout)
-        fig.update_layout(
-            title="Portfolio Composition",
-            xaxis_title="Number of the Investment Period",
-            yaxis_title="Composition",
-            legend_title="Name of the Fund",
-        )
-        fig.layout.yaxis.tickformat = ",.1%"
-        fig_composition = fig
-
-        # Show figure if needed
-        # fig.show()
-
-        return fig_performance, fig_composition
+        return plotting.plot_backtest(performance, performance_benchmark, composition, names, tickers)
 
     @staticmethod
     def __plot_portfolio_densities(
@@ -204,192 +121,11 @@ class _TradeBot:
         tickers: list,
         names: list,
     ) -> tuple[go.Figure, dict[str, go.Figure], go.Figure]:
-        """METHOD TO PLOT THE LIFECYCLE SIMULATION RESULTS."""
-        # Define colors
-        colors = [
-            "#99A4AE",  # gray50
-            "#3b4956",  # dark
-            "#b7ada5",  # secondary
-            "#4099da",  # blue
-            "#8ecdc8",  # aqua
-            "#e85757",  # coral
-            "#fdd779",  # sun
-            "#644c76",  # eggplant
-            "#D8D1CA",  # warmGray50
-        ]
+        """Build the lifecycle terminal-wealth density and composition figures.
 
-        color_cycle = cycle(colors)  # To cycle through colors
-        fig = go.Figure()
-
-        max_density_across_all_datasets = 0  # Initialize max density tracker
-
-        for label, df in portfolio_performance_dict.items():
-            # Generating a range of values to evaluate the KDE
-            x_min = df["Terminal Wealth"].min()
-            x_max = df["Terminal Wealth"].max()
-            x = np.linspace(x_min, x_max, 1000)
-
-            # Kernel Density Estimation for each dataset
-            # Handle case where data has insufficient variance (singular covariance)
-            try:
-                kde = gaussian_kde(df["Terminal Wealth"])
-                density = kde(x)
-            except np.linalg.LinAlgError:
-                # Fall back to a simple histogram-based density when KDE fails
-                logger.warning(
-                    f"KDE failed for '{label}' due to insufficient variance in terminal wealth. "
-                    "Using histogram-based density estimation."
-                )
-                hist, bin_edges = np.histogram(df["Terminal Wealth"], bins=50, density=True)
-                bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-                # Interpolate to get smooth density at x values
-                density = np.interp(x, bin_centers, hist)
-
-            # Update max density if current density peak is higher
-            max_density_across_all_datasets = max(max_density_across_all_datasets, max(density))
-
-            # Create line plot trace for this dataset
-            fig.add_trace(
-                go.Scatter(
-                    x=x,
-                    y=density,
-                    mode="lines",
-                    name=label,  # Use the dictionary key as the label
-                    line={"width": 2.5, "color": next(color_cycle)},  # Assign color from Orsted-Colors
-                )
-            )
-
-        # Add a dashed vertical line at x=0
-        fig.add_shape(
-            type="line",
-            x0=0,
-            y0=0,
-            x1=0,
-            y1=max_density_across_all_datasets,  # Use the max density across all datasets
-            line={
-                "color": "Black",
-                "width": 3,
-                "dash": "dash",  # Define dash pattern
-            },
-        )
+        Thin wrapper over :func:`plotting.plot_portfolio_densities`.
         """
-        # Update the layout
-        fig.update_layout(
-            title_text='Density function(s) of terminal wealth for risk classes in 1000 different scenarios.',
-            xaxis_title='Terminal Wealth',
-            yaxis_title='Density',
-            legend_title='Risk Class',
-            template='plotly_white'
-        )
-        """
-        # Update the layout with larger fonts
-        fig.update_layout(
-            title_text="Density function(s) of the end portfolio value for various glide paths.",
-            title_font={"size": 24},  # Increase title font size
-            xaxis_title="Target date portfolio value",
-            xaxis_title_font={"size": 18},  # Increase x-axis title font size
-            xaxis_tickfont={"size": 16},  # Increase x-axis tick label font size
-            yaxis_title="Density",
-            yaxis_title_font={"size": 18},  # Increase y-axis title font size
-            yaxis_tickfont={"size": 16},  # Increase y-axis tick label font size
-            legend_title="Risb Budget glide path",
-            legend_title_font={"size": 18},  # Increase legend title font size
-            legend_font={"size": 16},  # Increase legend text font size
-            template="plotly_white",
-        )
-
-        # Show the figure in a browser
-        # fig.show(renderer="browser")
-
-        composition_figures = {}
-        filtered_compositions = {name: comp for name, comp in compositions.items() if "reverse" not in name}
-        num_portfolios = len(filtered_compositions)
-        cols = 2 if num_portfolios > 1 else 1
-        rows = ceil(
-            num_portfolios / cols
-        )  # Calculate the number of rows needed based on the total number of compositions
-
-        subplot_titles = [f"Portfolio Composition: {name}" for name in filtered_compositions]
-        fig_subplots = make_subplots(
-            rows=rows,
-            cols=cols,
-            subplot_titles=subplot_titles,
-            vertical_spacing=0.1,
-            horizontal_spacing=0.05,
-        )
-
-        tickers_in_legend = set()
-        current_plot = 1  # Keep track of the current plot index to correctly calculate row and col
-
-        for portfolio_name, composition in filtered_compositions.items():
-            composition_names = []
-            for ticker in composition.columns[:-1]:
-                ticker_index = list(tickers).index(ticker)
-                composition_names.append(list(names)[ticker_index])
-            if "Cash" not in composition_names:
-                composition_names.append("Cash")
-            composition.columns = composition_names
-            composition = composition.loc[:, (composition != 0).any(axis=0)]
-
-            composition_color = (
-                px.colors.sequential.turbid
-                + px.colors.sequential.Brwnyl
-                + px.colors.sequential.YlOrBr
-                + px.colors.sequential.gray
-                + px.colors.sequential.Mint
-                + px.colors.sequential.dense
-                + px.colors.sequential.Plasma
-                + px.colors.sequential.Viridis
-                + px.colors.sequential.Cividis
-            )
-
-            # Create an individual figure for the current portfolio
-            individual_fig = go.Figure()
-
-            for idx_color, isin in enumerate(composition.columns):
-                show_legend = isin not in tickers_in_legend
-                tickers_in_legend.add(isin)
-
-                trace = go.Bar(
-                    x=composition.index,
-                    y=composition[isin],
-                    name=str(isin),
-                    marker_color=composition_color[idx_color % len(composition_color)],
-                    showlegend=show_legend,
-                )
-
-                # Add trace to both the subplot and the individual figure
-                row, col = divmod(current_plot - 1, cols)
-                fig_subplots.add_trace(trace, row=row + 1, col=col + 1)
-                individual_fig.add_trace(trace)
-
-            # Configure the individual figure layout
-            individual_fig.update_layout(
-                title=f"Portfolio Composition: {portfolio_name}",
-                plot_bgcolor="white",
-                barmode="stack",
-            )
-            individual_fig["layout"]["yaxis"].tickformat = ",.1%"
-
-            # Store the individual figure in the dictionary
-            composition_figures[portfolio_name] = individual_fig
-
-            current_plot += 1
-
-        fig_subplots.update_layout(
-            title="Portfolio Compositions",
-            height=500 * rows,
-            width=1000 * cols,
-            plot_bgcolor="white",
-            barmode="stack",
-        )
-        # Update y-axis tick format for all subplots
-        for i in range(1, cols * rows + 1):
-            fig_subplots["layout"][f"yaxis{i}"].tickformat = ",.1%"
-
-        # fig_subplots.show()
-
-        return fig, composition_figures, fig_subplots
+        return plotting.plot_portfolio_densities(portfolio_performance_dict, compositions, tickers, names)
 
     def get_stat(self, start_date: str, end_date: str) -> pd.DataFrame:
         """METHOD COMPUTING ANNUAL RETURNS, ANNUAL STD. DEV. & SHARPE RATIO OF ASSETS."""
@@ -491,115 +227,25 @@ class _TradeBot:
         optimal_portfolio: list | None = None,
         benchmark: list | None = None,
     ) -> go.Figure:
-        """METHOD TO PLOT THE OVERVIEW OF THE FINANCIAL PRODUCTS IN TERMS OF RISK AND RETURNS."""
-        fund_set = fund_set if fund_set else []
-        top_performers = top_performers if top_performers else []
+        """Plot the risk/return overview of the financial products.
 
-        # Get statistics for a given time period
+        Delegates figure construction to :func:`plotting.dots_figure`, passing
+        the per-asset statistics computed for the requested window.
+        """
         data = self.get_stat(start_date, end_date)
-
-        # Add data about the optimal portfolio and benchmark for plotting
-        if optimal_portfolio:
-            data.loc[optimal_portfolio[4]] = optimal_portfolio
-        if benchmark:
-            data.loc[benchmark[4]] = benchmark
-
-        # IF WE WANT TO HIGHLIGHT THE SUBSET OF ASSETS BASED ON ML
-        if ml == "MST":
-            data.loc[:, "Type"] = "Funds"
-            for fund in ml_subset:  # ty: ignore[not-iterable]
-                data.loc[fund, "Type"] = "MST subset"
-        if ml == "Clustering":
-            data.loc[:, "Type"] = ml_subset.loc[:, "Cluster"]  # ty: ignore[unresolved-attribute]
-
-        # If selected any fund for comparison
-        for fund in fund_set:
-            isin_idx = list(self.names).index(fund)
-            data.loc[self.tickers[isin_idx], "Type"] = str(data.loc[self.tickers[isin_idx], "Name"])
-            data.loc[self.tickers[isin_idx], "Size"] = 3
-
-        for fund in top_performers:
-            isin_idx = list(self.names).index(fund)
-            data.loc[self.tickers[isin_idx], "Type"] = "Top Performer"
-            data.loc[self.tickers[isin_idx], "Size"] = 3
-
-        # PLOTTING Data
-        color_discrete_map = {
-            "ETF": "#21304f",
-            "Mutual Fund": "#f58f02",
-            "Funds": "#21304f",
-            "MST subset": "#f58f02",
-            "Top Performer": "#f58f02",
-            "Cluster 1": "#21304f",
-            "Cluster 2": "#f58f02",
-            "Benchmark Portfolio": "#f58f02",
-            "Optimal Portfolio": "olive",
-        }
-        fig = px.scatter(
+        return plotting.dots_figure(
             data,
-            x="Standard Deviation of Returns",
-            y="Average Annual Returns",
-            color="Type",
-            size="Size",
-            size_max=8,
-            hover_name="Name",
-            hover_data={"Sharpe Ratio": True, "ISIN": True, "Size": False},
-            color_discrete_map=color_discrete_map,
-            title="Annual Returns and Standard Deviation of Returns from " + start_date[:10] + " to " + end_date[:10],
+            start_date,
+            end_date,
+            ml=ml,
+            ml_subset=ml_subset,
+            fund_set=fund_set,
+            top_performers=top_performers,
+            optimal_portfolio=optimal_portfolio,
+            benchmark=benchmark,
+            names=self.names,
+            tickers=self.tickers,
         )
-
-        # AXIS IN PERCENTAGES
-        fig.layout.yaxis.tickformat = ",.1%"
-        fig.layout.xaxis.tickformat = ",.1%"
-
-        # RISK LEVEL MARKER
-        min_risk = data["Standard Deviation of Returns"].min()
-        max_risk = data["Standard Deviation of Returns"].max()
-        risk_level = {
-            "Risk Class 1": 0.005,
-            "Risk Class 2": 0.02,
-            "Risk Class 3": 0.05,
-            "Risk Class 4": 0.10,
-            "Risk Class 5": 0.15,
-            "Risk Class 6": 0.25,
-            "Risk Class 7": max_risk,
-        }
-        # Initialize dynamic risk levels
-        actual_risk_level = set()
-        for i in range(1, 8):
-            k = "Risk Class " + str(i)
-            if (risk_level[k] >= min_risk) and (risk_level[k] <= max_risk):
-                actual_risk_level.add(i)
-
-        if max(actual_risk_level) < 7:  # pragma: no cover (dead code - 7 always in set)
-            actual_risk_level.add(max(actual_risk_level) + 1)  # Add the final risk level
-
-        for level in actual_risk_level:
-            k = "Risk Class " + str(level)
-            fig.add_vline(
-                x=risk_level[k], line_width=1, line_dash="dash", line_color="#7c90a0"
-            )  # annotation_text=k, annotation_position="top left")
-            fig.add_annotation(
-                x=risk_level[k] - 0.01,
-                y=max(data["Average Annual Returns"]),
-                text=k,
-                textangle=-90,
-                showarrow=False,
-            )
-
-        # RETURN LEVEL MARKER
-        fig.add_hline(y=0, line_width=1.5, line_color="rgba(233, 30, 99, 0.5)")
-
-        # TITLES
-        fig.update_annotations(font_color="#000000")
-        fig.update_layout(
-            xaxis_title="Annualised standard deviation of returns (Risk)",
-            yaxis_title="Annualised average returns",
-        )
-        # Position of legend
-        fig.update_layout(legend={"yanchor": "bottom", "y": 0.01, "xanchor": "left", "x": 0.01})
-        # fig.show()
-        return fig
 
     def mst(self, start_date: str, end_date: str, n_mst_runs: int, plot: bool = False) -> tuple:
         """METHOD TO RUN MST METHOD AND PRINT RESULTS."""
