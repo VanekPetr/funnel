@@ -85,7 +85,7 @@ class _TradeBot:
     - Lifecycle investment modeling and scenario analysis
     """
 
-    def __init__(self, tickers: list[str], names: list[str], weekly_returns: pd.DataFrame):
+    def __init__(self, tickers: list[str], names: list[str], weekly_returns: pd.DataFrame) -> None:
         """Initialize the trading bot with financial data.
 
         Args:
@@ -133,7 +133,7 @@ class _TradeBot:
         # ** PERFORMANCE GRAPH **
         try:
             df_to_plot = pd.concat([performance, performance_benchmark], axis=1)
-        except Exception:
+        except Exception:  # noqa: BLE001  # fall back to legacy date handling on any concat failure
             logger.warning("⚠️ Old data format.")
             performance.index = [date.date() for date in performance.index]  # needed for old data
             df_to_plot = pd.concat([performance, performance_benchmark], axis=1)
@@ -418,6 +418,21 @@ class _TradeBot:
         return stat_df
 
     def get_top_performing_assets(self, time_periods: list[tuple[str, str]], top_percent: float = 0.2) -> list[str]:
+        """Select assets that are consistent top performers across all given periods.
+
+        For each period, assets are grouped into risk classes by their return
+        standard deviation and, within each class, ranked by Sharpe ratio. An asset
+        is flagged a top performer for a period if its Sharpe-ratio rank falls in the
+        top ``top_percent`` of its risk class. Only assets flagged in *every* period
+        are returned.
+
+        Args:
+            time_periods: List of (start_date, end_date) string tuples, one per period.
+            top_percent: Fraction (0-1) of each risk class to treat as top performers.
+
+        Returns:
+            list[str]: Names of the assets that were top performers in all periods.
+        """
         stats_for_periods = {f"period_{i}": self.get_stat(*period) for i, period in enumerate(time_periods, 1)}
 
         # Create 'Risk class' column where the value is
@@ -586,7 +601,7 @@ class _TradeBot:
         # fig.show()
         return fig
 
-    def mst(self, start_date: str, end_date: str, n_mst_runs: int, plot: bool = False):
+    def mst(self, start_date: str, end_date: str, n_mst_runs: int, plot: bool = False) -> tuple:
         """METHOD TO RUN MST METHOD AND PRINT RESULTS."""
         fig, subset_mst = None, []
 
@@ -617,7 +632,7 @@ class _TradeBot:
         n_clusters: int,
         n_assets: int,
         plot: bool = False,
-    ):
+    ) -> tuple:
         """METHOD TO RUN MST METHOD AND PRINT RESULTS."""
         fig = None
         dataset = self.weeklyReturns[
@@ -774,7 +789,7 @@ class _TradeBot:
         withdrawals: int,
         initial_risk_appetite: float,
         initial_budget: int,
-        rng_seed=0,
+        rng_seed: int = 0,
         test_split: float = False,
     ) -> tuple[dict, pd.DataFrame, go.Figure, go.Figure, dict, dict, go.Figure]:
         """METHOD TO COMPUTE THE LIFECYCLE SCENARIO ANALYSIS."""

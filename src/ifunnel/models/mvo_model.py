@@ -17,7 +17,7 @@ from cvxpy import sum as cp_sum
 from loguru import logger
 
 
-def cholesky_psd(m):
+def cholesky_psd(m: np.ndarray | pd.DataFrame) -> np.ndarray:
     """Computes the Cholesky decomposition for positive semidefinite matrices.
 
     This function performs a Cholesky decomposition on matrices that may not be
@@ -51,17 +51,17 @@ def cholesky_psd(m):
 # MODEL FOR OPTIMIZING THE BACKTEST PERIODS
 # ----------------------------------------------------------------------
 def rebalancing_model(
-    mu,
-    covariance,
-    vty_target,
-    cash,
-    x_old,
-    trans_cost,
-    max_weight,
-    solver,
-    inaccurate,
-    lower_bound,
-):
+    mu: pd.Series,
+    covariance: pd.DataFrame,
+    vty_target: float,
+    cash: float,
+    x_old: pd.Series,
+    trans_cost: float,
+    max_weight: float,
+    solver: str,
+    inaccurate: bool,
+    lower_bound: float,
+) -> tuple:
     """Finds the optimal enhanced index portfolio according to a benchmark.
 
     This function optimizes a portfolio to maximize expected return while respecting
@@ -150,7 +150,7 @@ def rebalancing_model(
         # Set floating data points to zero and normalize
         opt_port[np.abs(opt_port) < 0.000001] = 0
         port_val = np.sum(opt_port)
-        vty_result_p = np.linalg.norm(g @ x.value, 2) / port_val
+        vty_result_p = np.linalg.norm(g @ x.value, 2) / port_val  # ty: ignore[unsupported-operator]  # x.value set once status is optimal
         opt_port = opt_port / port_val
 
         # Remaining cash
@@ -174,8 +174,9 @@ def rebalancing_model(
         with open("rebalance_inputs.pkl", "wb") as file:
             pickle.dump(inputs, file)
 
-        # Print an error if the model is not optimal
-        logger.exception(f"❌ Solver does not find optimal solution. Status code is {model.status}")
+        # Raise an error if the model is not optimal
+        logger.error(f"❌ Solver does not find optimal solution. Status code is {model.status}")
+        raise RuntimeError(f"Solver did not find an optimal solution (status: {model.status})")  # noqa: TRY003
 
 
 # ----------------------------------------------------------------------

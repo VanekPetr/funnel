@@ -35,7 +35,7 @@ def download_data(start_date: str, end_date: str, tickers: list[str]) -> pd.Data
     # Download price data from Yahoo! finance based on list of ETF tickers and start/end dates
     try:
         daily_prices = yf.download(tickers, start=start_date, end=end_date)["Adj Close"]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  # yfinance surfaces many error types; treat any as a failed download
         logger.warning(f"⚠️ Problem when downloading our data with an error: {e}")
         daily_prices = None
 

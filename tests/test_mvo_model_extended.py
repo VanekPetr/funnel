@@ -259,20 +259,21 @@ class TestRebalancingModel:
         with tempfile.TemporaryDirectory() as tmpdir:
             os.chdir(tmpdir)
             try:
-                result = rebalancing_model(
-                    mu=mu,
-                    covariance=covariance,
-                    vty_target=vty_target,
-                    cash=cash,
-                    x_old=x_old,
-                    trans_cost=trans_cost,
-                    max_weight=max_weight,
-                    solver=solver,
-                    inaccurate=False,  # Don't accept inaccurate solutions
-                    lower_bound=0,
-                )
-                # Result could be None for infeasible problem or a valid result
-                # if solver finds a way. Either way, the code path is exercised.
-                assert result is None or isinstance(result, tuple)
+                # A non-optimal solver status raises RuntimeError (per the
+                # function's documented contract), rather than silently
+                # returning None for the caller to unpack.
+                with pytest.raises(RuntimeError, match="optimal solution"):
+                    rebalancing_model(
+                        mu=mu,
+                        covariance=covariance,
+                        vty_target=vty_target,
+                        cash=cash,
+                        x_old=x_old,
+                        trans_cost=trans_cost,
+                        max_weight=max_weight,
+                        solver=solver,
+                        inaccurate=False,  # Don't accept inaccurate solutions
+                        lower_bound=0,
+                    )
             finally:
                 os.chdir(original_dir)

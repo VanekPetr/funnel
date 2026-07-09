@@ -173,6 +173,7 @@ def test_get_algostrata_data_mixed_responses():
 
         # Create responses that alternate between success and error
         def mock_post_side_effect(*args, **kwargs):
+            """Return an alternating success/error response per POST call."""
             mock_response = type("Response", (), {})()
             # First call succeeds, second fails, third succeeds
             if mock_post.call_count % 2 == 1:

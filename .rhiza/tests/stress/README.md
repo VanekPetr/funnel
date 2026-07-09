@@ -138,6 +138,4 @@ def test_concurrent_operation(stress_iterations, concurrent_workers):
 ## See Also
 
 - [Main Test README](../README.md) - Overview of all test categories
-- [Integration Tests](../integration/) - End-to-end workflow tests
 - [Benchmarks](../../../tests/benchmarks/) - Performance benchmarks
-- [Property Tests](../../../tests/property/) - Property-based tests

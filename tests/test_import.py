@@ -4,22 +4,18 @@ from ifunnel import initialize_bot
 
 
 def test_bot():
-    """Tests the initialization of the bot and prints its relevant attributes.
+    """Initializing the bot from the bundled data yields a usable instance.
 
-    This function attempts to initialize the bot and verifies the presence of
-    essential attributes such as date range and asset count. It also handles
-    and reports any errors that occur during the initialization process.
-
-    Raises:
-    ------
-    Exception
-        If there is an error during the bot initialization process.
+    Asserts that the default (file-less) initialization loads the packaged
+    returns data and exposes a valid date range and a non-empty asset universe.
     """
-    # Try to initialize the bot
-    try:
-        bot = initialize_bot()
-        print("Successfully initialized bot!")
-        print(f"Bot has data from {bot.min_date} to {bot.max_date}")
-        print(f"Number of assets: {len(bot.tickers)}")
-    except Exception as e:
-        print(f"Error initializing bot: {e}")
+    # Ensure we exercise a fresh load rather than a cached instance from another test
+    initialize_bot.cache_clear()
+
+    bot = initialize_bot()
+
+    assert bot.min_date is not None
+    assert bot.max_date is not None
+    assert bot.min_date <= bot.max_date
+    assert len(bot.tickers) > 0
+    assert len(bot.tickers) == len(bot.names)

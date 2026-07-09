@@ -17,7 +17,7 @@ class MomentGenerator:
     """Provides methods for mean, variance generation."""
 
     @staticmethod
-    def _alpha_numerator(zz, ss):
+    def _alpha_numerator(zz: np.ndarray, ss: np.ndarray | pd.DataFrame) -> float:
         """Computes the numerator for the Ledoit-Wolf shrinkage coefficient.
 
         Parameters:
@@ -37,7 +37,7 @@ class MomentGenerator:
         return s
 
     @staticmethod
-    def _ledoit_wolf_shrinkage(x, s):
+    def _ledoit_wolf_shrinkage(x: pd.DataFrame, s: np.ndarray | pd.DataFrame) -> np.ndarray | pd.DataFrame:
         """Computes the Ledoit--Wolf shrinkage, using a target of scaled identity."""
         n = len(x.columns)
         # In case only one asset in the matrix, for example for benchmark with one asset, no shrinkage is needed
@@ -62,7 +62,7 @@ class MomentGenerator:
         return shrunk
 
     @staticmethod
-    def _jorion_shrinkage(mu, mu_star, _lambda):
+    def _jorion_shrinkage(mu: np.ndarray, mu_star: np.ndarray, _lambda: float) -> np.ndarray:
         """Applies shrinkage to the mean of weekly returns.
 
         Parameters:
@@ -79,7 +79,7 @@ class MomentGenerator:
         return shrunk_mean
 
     @staticmethod
-    def compute_annualized_covariance(x):
+    def compute_annualized_covariance(x: pd.DataFrame) -> pd.DataFrame:
         """Compute the annualized covariance matrix from weekly return data.
 
         Incorporating robust estimation (MCD), Ledoit-Wolf shrinkage.
@@ -97,7 +97,7 @@ class MomentGenerator:
         # Step 2: Apply Ledoit-Wolf Shrinkage
         shrunk_cov_df = MomentGenerator._ledoit_wolf_shrinkage(x, robust_cov_df)
 
-        return shrunk_cov_df
+        return shrunk_cov_df  # ty: ignore[invalid-return-type]  # DataFrame in → DataFrame out
 
     @staticmethod
     def generate_sigma_mu_for_test_periods(data: pd.DataFrame, n_test: int) -> tuple[list, list]:
@@ -152,7 +152,7 @@ class MomentGenerator:
         return sigma_lst, mu_lst
 
     @staticmethod
-    def split_dataset(data: pd.DataFrame, sampling_ratio: float = 0.6):
+    def split_dataset(data: pd.DataFrame, sampling_ratio: float = 0.6) -> tuple:
         """Splits the dataset into a sampling (training) set and an estimating (testing) set.
 
         Parameters:
@@ -235,7 +235,7 @@ class MomentGenerator:
 class ScenarioGenerator:
     """Provides methods for scenario generation."""
 
-    def __init__(self, rng: np.random.Generator):
+    def __init__(self, rng: np.random.Generator) -> None:
         """Initializes the ScenarioGenerator class."""
         self.rng = rng
 
@@ -345,7 +345,7 @@ class ScenarioGenerator:
         n_simulations: int,
         n_years: int,
         cash_return_annual: float = 0.015,
-    ):
+    ) -> np.ndarray:
         """Generate Monte Carlo simulations for annual returns.
 
         Based on provided weekly mu and sigma.
