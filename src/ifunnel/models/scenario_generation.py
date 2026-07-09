@@ -235,7 +235,7 @@ class MomentGenerator:
 class ScenarioGenerator:
     """Provides methods for scenario generation."""
 
-    def __init__(self, rng: np.random.Generator):
+    def __init__(self, rng: np.random.Generator) -> None:
         """Initializes the ScenarioGenerator class."""
         self.rng = rng
 

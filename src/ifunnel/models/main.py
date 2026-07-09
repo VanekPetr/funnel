@@ -85,7 +85,7 @@ class _TradeBot:
     - Lifecycle investment modeling and scenario analysis
     """
 
-    def __init__(self, tickers: list[str], names: list[str], weekly_returns: pd.DataFrame):
+    def __init__(self, tickers: list[str], names: list[str], weekly_returns: pd.DataFrame) -> None:
         """Initialize the trading bot with financial data.
 
         Args:
