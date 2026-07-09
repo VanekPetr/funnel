@@ -1,7 +1,8 @@
 [project]
 name = 'ifunnel'
-version = "0.0.0"
+version = "0.1.0"
 description = "Backend for the investment-funnel"
+license = "MIT"
 # Please add authors and correct the email...
 authors = [{name='Thomas Schmelzer', email= 'thomas.schmelzer@gmail.com'},
            {name="Petr Vanek", email="abc@gmail.com"}
@@ -30,11 +31,21 @@ dependencies = [
 ]
 
 [project.urls]
-repository = "https://github.com/tschm/funnel"
+Homepage = "https://github.com/VanekPetr/funnel"
+Repository = "https://github.com/VanekPetr/funnel"
 
 [dependency-groups]
 dev = [
     "marimo>=0.23.13",
+]
+test = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "pytest-mock>=3",
+]
+lint = [
+    "ruff>=0.6",
+    "pre-commit>=3",
 ]
 
 [build-system]
