@@ -418,6 +418,21 @@ class _TradeBot:
         return stat_df
 
     def get_top_performing_assets(self, time_periods: list[tuple[str, str]], top_percent: float = 0.2) -> list[str]:
+        """Select assets that are consistent top performers across all given periods.
+
+        For each period, assets are grouped into risk classes by their return
+        standard deviation and, within each class, ranked by Sharpe ratio. An asset
+        is flagged a top performer for a period if its Sharpe-ratio rank falls in the
+        top ``top_percent`` of its risk class. Only assets flagged in *every* period
+        are returned.
+
+        Args:
+            time_periods: List of (start_date, end_date) string tuples, one per period.
+            top_percent: Fraction (0-1) of each risk class to treat as top performers.
+
+        Returns:
+            list[str]: Names of the assets that were top performers in all periods.
+        """
         stats_for_periods = {f"period_{i}": self.get_stat(*period) for i, period in enumerate(time_periods, 1)}
 
         # Create 'Risk class' column where the value is
