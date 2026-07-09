@@ -1,0 +1,26 @@
+# Root MkDocs config. Inherits shared theme/extensions/plugins from the
+# rhiza-managed base and overrides only project metadata and navigation.
+# (Any key omitted here is inherited; `nav` fully replaces the base's.)
+INHERIT: docs/mkdocs-base.yml
+
+site_name: ifunnel
+site_description: Backend for the investment-funnel — portfolio optimization and analysis.
+site_author: Thomas Schmelzer
+site_url: https://VanekPetr.github.io/funnel/
+repo_url: https://github.com/VanekPetr/funnel
+repo_name: VanekPetr/funnel
+copyright: Copyright &copy; 2024–2026 Jebel Quant Research
+
+# Set explicitly so `docs` resolves relative to this file, not the base config.
+docs_dir: docs
+
+nav:
+  - Home: index.md
+  - Deployment:
+      - Docker: DOCKER.md
+      - Agentic Workflows: GH_AW.md
+  - Development:
+      - DevContainer: development/DEVCONTAINER.md
+      - Marimo Notebooks: development/MARIMO.md
+      - Tests: development/TESTS.md
+      - VS Code Extensions: development/VSCODE_EXTENSIONS.md
