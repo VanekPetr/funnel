@@ -12,7 +12,7 @@ from scipy.cluster.hierarchy import complete, dendrogram, fcluster
 from scipy.spatial.distance import squareform
 
 
-def fancy_dendrogram(*args, **kwargs):
+def fancy_dendrogram(*args, **kwargs) -> dict:
     """FUNCTION TO CREATE DENDROGRAM."""
     max_d = kwargs.pop("max_d", None)
     if max_d and "color_threshold" not in kwargs:

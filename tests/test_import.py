@@ -21,5 +21,5 @@ def test_bot():
         print("Successfully initialized bot!")
         print(f"Bot has data from {bot.min_date} to {bot.max_date}")
         print(f"Number of assets: {len(bot.tickers)}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  # smoke test: report any initialization failure
         print(f"Error initializing bot: {e}")

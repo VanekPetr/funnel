@@ -75,6 +75,14 @@ disable_error_code = [
     "import-untyped",
 ]
 
+# cvxpy re-exports helpers (norm, sum, ...) dynamically, so mypy cannot see them
+# as module attributes. Treat the package as untyped rather than sprinkling
+# per-line `# type: ignore[attr-defined]` (which ty then reports as unused).
+[[tool.mypy.overrides]]
+module = ["cvxpy", "cvxpy.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
+
 [tool.deptry.per_rule_ignores]
 DEP002 = ["clarabel","pyarrow","ecos","mosek","cvxpy-base","pydantic"]
 
