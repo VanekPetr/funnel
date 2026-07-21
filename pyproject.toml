@@ -14,7 +14,7 @@ dependencies = [
     "cvxpy-base>=1.9.2",
     "python-dotenv>=1.1.1",
     "loguru>=0.7.3",
-    "matplotlib>=3.11.0",
+    "matplotlib>=3.11.1",
     "mosek>=11.2.2",
     "networkx>=3.4.2",
     "numpy>=2.4.6",
@@ -44,7 +44,7 @@ test = [
     "pytest-mock>=3",
 ]
 lint = [
-    "ruff>=0.15.21",
+    "ruff>=0.15.22",
     "pre-commit>=3",
 ]
 
