@@ -36,7 +36,7 @@ Repository = "https://github.com/VanekPetr/funnel"
 
 [dependency-groups]
 dev = [
-    "marimo>=0.23.14",
+    "marimo>=0.23.15",
 ]
 test = [
     "pytest>=8",
@@ -44,8 +44,8 @@ test = [
     "pytest-mock>=3",
 ]
 lint = [
-    "ruff>=0.15.22",
-    "pre-commit>=3",
+    "ruff>=0.16.0",
+    "pre-commit>=4.6.1",
 ]
 
 [build-system]
