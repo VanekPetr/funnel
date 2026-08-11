@@ -21,7 +21,7 @@ dependencies = [
     "pandas>=2.3.0",
     "plotly>=6.9.0",
     "pyarrow>=22.0.0",
-    "pydantic-settings>=2.14.2",
+    "pydantic-settings>=2.15.0",
     "pydantic>=2.13.4",
     "python-dateutil>=2.9.0.post0",
     "requests>=2.34.2",
@@ -44,7 +44,7 @@ test = [
     "pytest-mock>=3",
 ]
 lint = [
-    "ruff>=0.16.1",
+    "ruff>=0.16.2",
     "pre-commit>=4.6.1",
 ]
 
