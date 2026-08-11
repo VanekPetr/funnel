@@ -30,7 +30,7 @@ def rebalancing_model(
     solver: str,
     inaccurate: bool,
     lower_bound: int,
-) -> None | tuple[pd.Series, float, float, float]:
+) -> tuple[pd.Series, float, float, float] | None:
     """Find the optimal portfolio that maximizes return subject to CVaR constraints.
 
     This function optimizes a portfolio to maximize expected return while respecting
