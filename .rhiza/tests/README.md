@@ -1,9 +1,9 @@
 # Rhiza Test Suite (`.rhiza/tests/`)
 
 This directory is **synced from [jebel-quant/rhiza](https://github.com/jebel-quant/rhiza)**
-via the `tests` bundle and runs in your project with `make rhiza-test`. Its job is to
-validate the parts of *your* repository that Rhiza cares about — the metadata, docs, and
-docstrings that vary per project — using the shared fixtures and helpers below.
+and runs in your project with `make rhiza-test`. Its job is to validate the parts of *your*
+repository that Rhiza cares about — the metadata, release config, docs and docstrings that
+vary per project — using the shared fixtures below.
 
 > Tests that only exercise Rhiza's *own* template files (Makefile targets, workflow stubs,
 > the project skeleton) live in Rhiza's mother-repo `tests/` suite and are **not** synced
@@ -12,22 +12,30 @@ docstrings that vary per project — using the shared fixtures and helpers below
 
 ## Layout
 
-The suite is flat — one file per concern:
+The suite is flat — one file per concern — but **which files you get depends on the
+bundles you sync**. Each is owned by whichever bundle the assertion belongs to, so a Rust
+project gets the Rust manifest checks and none of the Python ones:
 
-- `test_pyproject.py` — validates `pyproject.toml` structure and required fields
-- `test_readme_validation.py` — executes/syntax-checks `README.md` code blocks (see below)
-- `test_docstrings.py` — runs doctests across the modules in your source folder
-- `test_git_repo_fixture.py` — self-test for the shared `git_repo` fixture
-- `conftest.py` — shared fixtures (`root`, `logger`, `git_repo`)
-- `test_utils.py` — shared helpers (`run_make`, `setup_rhiza_git_repo`, `strip_ansi`)
-- `stress/` — scaffolding for optional load/concurrency tests (see [stress/README.md](stress/README.md))
+| file | owned by | checks |
+| --- | --- | --- |
+| `conftest.py` | `core` | shared fixtures (`root`, `logger`, `latest_tag`) |
+| `test_release_tags.py` | `core` | the newest tag is reachable from a branch |
+| `test_readme.py` | `core` | README exists; every `bash` fence parses |
+| `test_pyproject.py` | `python-core` | `pyproject.toml` structure, and its `[tool.bumpversion]` block |
+| `test_docstrings.py` | `python-core` | doctests across the modules in your source folder |
+| `test_readme_validation.py` | `tests` | executes `python` fences and diffs them against `result` (see below) |
+| `test_cargo_toml.py` | `rust-core` | `Cargo.toml` structure and the `.bumpversion.toml` wiring |
+| `test_go_module.py` | `go-core` | `go.mod`, the `Version` constant, and the same wiring |
+
+Every profile pairs `core` with exactly one language layer, so `conftest.py` is always
+present alongside whichever layer's modules arrived.
 
 ### Skipping README code blocks with `+RHIZA_SKIP`
 
-By default, every `python` and `bash` code block in `README.md` is executed or
-syntax-checked by `test_readme_validation.py`. To mark a block as intentionally
-non-runnable (e.g. illustrative snippets or environment-specific commands), add
-`+RHIZA_SKIP` to the opening fence line:
+By default, every `bash` fence in `README.md` is syntax-checked (`test_readme.py`, any
+language) and every `python` fence is executed (`test_readme_validation.py`, Python
+projects). To mark a block as intentionally non-runnable — an illustrative snippet, an
+environment-specific command — add `+RHIZA_SKIP` to the opening fence line:
 
 ~~~markdown
 ```python +RHIZA_SKIP
@@ -53,13 +61,6 @@ make rhiza-test                                  # run this suite (the usual ent
 uv run pytest .rhiza/tests/                       # equivalent, direct invocation
 uv run pytest .rhiza/tests/test_pyproject.py      # a single file
 uv run pytest .rhiza/tests/ -v                    # verbose
-uv run pytest .rhiza/tests/ -m "not stress"       # skip stress tests
-```
-
-Stress tests accept custom parameters (defaults: 100 iterations, 10 workers):
-
-```bash
-uv run pytest .rhiza/tests/stress/ -v --iterations=10
 ```
 
 ## Fixtures
@@ -68,15 +69,8 @@ Defined in `conftest.py` and available to every test without import:
 
 - `root` — repository root path (session-scoped)
 - `logger` — configured logger instance (session-scoped)
-- `git_repo` — sandboxed git repository (function-scoped)
 
-Shared helpers live in `test_utils.py` and are imported directly:
-
-```python
-from test_utils import strip_ansi, run_make, setup_rhiza_git_repo
-```
-
-`.rhiza/tests` is on `pythonpath` (see `pytest.ini`), so `test_utils` imports resolve
+`.rhiza/tests` is on `pythonpath` (see `pytest.ini`), so intra-suite imports resolve
 without any `sys.path` manipulation.
 
 ## Writing Tests
@@ -85,4 +79,3 @@ without any `sys.path` manipulation.
 - Group related tests in classes when appropriate
 - Add docstrings to test modules and complex test functions
 - Use `pytest.mark.skip` for tests that depend on optional features
-- Prefer the `git_repo` fixture over touching the working tree
