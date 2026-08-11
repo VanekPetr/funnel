@@ -9,6 +9,14 @@ authors = [{name='Thomas Schmelzer', email= 'thomas.schmelzer@gmail.com'},
 ]
 readme = "README.md"
 requires-python = ">=3.11"
+# Source of truth for the CI Python matrix: rhiza's ci workflow reads these
+# classifiers to decide which versions `test` and `typecheck` run against.
+# Adding or removing one changes CI coverage, so only list versions that pass.
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
 dependencies = [
     "clarabel>=0.10.0",
     "cvxpy-base>=1.9.2",
@@ -27,7 +35,7 @@ dependencies = [
     "requests>=2.34.2",
     "scikit-learn>=1.9.0",
     "scipy>=1.15.2",
-    "yfinance>=0.2.60",
+    "yfinance>=1.5",
 ]
 
 [project.urls]
