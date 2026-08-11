@@ -15,12 +15,13 @@ def test_download_data_success():
             {"AAPL": [100, 101, 102], "MSFT": [200, 201, 202]},
             index=pd.date_range("2023-01-01", periods=3),
         )
-        mock_download.return_value = {"Adj Close": mock_df}
+        mock_download.return_value = {"Close": mock_df}
 
         result = download_data("2023-01-01", "2023-01-03", ["AAPL", "MSFT"])
 
         assert result is not None
-        mock_download.assert_called_once()
+        pd.testing.assert_frame_equal(result, mock_df)
+        mock_download.assert_called_once_with(["AAPL", "MSFT"], start="2023-01-01", end="2023-01-03", auto_adjust=True)
 
 
 def test_download_data_exception():
@@ -37,7 +38,7 @@ def test_download_data_with_empty_ticker_list():
     """Test download_data with empty ticker list."""
     with patch("ifunnel.financial_data_preprocessing.get_yahoo_data.yf.download") as mock_download:
         download_data("2023-01-01", "2023-01-03", [])
-        mock_download.assert_called_once_with([], start="2023-01-01", end="2023-01-03")
+        mock_download.assert_called_once_with([], start="2023-01-01", end="2023-01-03", auto_adjust=True)
 
 
 def test_download_data_main_block():

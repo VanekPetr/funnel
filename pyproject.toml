@@ -27,7 +27,7 @@ dependencies = [
     "requests>=2.34.2",
     "scikit-learn>=1.9.0",
     "scipy>=1.15.2",
-    "yfinance>=0.2.60",
+    "yfinance>=1.5",
 ]
 
 [project.urls]

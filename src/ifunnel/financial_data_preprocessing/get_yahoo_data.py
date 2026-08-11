@@ -32,9 +32,12 @@ def download_data(start_date: str, end_date: str, tickers: list[str]) -> pd.Data
     Raises:
         No exceptions are raised as errors are caught and logged
     """
-    # Download price data from Yahoo! finance based on list of ETF tickers and start/end dates
+    # Download price data from Yahoo! finance based on list of ETF tickers and start/end dates.
+    # `auto_adjust=True` folds splits and dividends into "Close" and drops the separate
+    # "Adj Close" column, so the adjusted series is read from "Close". Passed explicitly
+    # rather than relying on the default, which yfinance flipped in 0.2.51.
     try:
-        daily_prices = yf.download(tickers, start=start_date, end=end_date)["Adj Close"]
+        daily_prices = yf.download(tickers, start=start_date, end=end_date, auto_adjust=True)["Close"]
     except Exception as e:  # noqa: BLE001  # yfinance surfaces many error types; treat any as a failed download
         logger.warning(f"⚠️ Problem when downloading our data with an error: {e}")
         daily_prices = None
