@@ -35,7 +35,7 @@ dependencies = [
     "requests>=2.34.2",
     "scikit-learn>=1.9.0",
     "scipy>=1.15.2",
-    "yfinance>=1.5",
+    "yfinance>=1.6.0",
 ]
 
 [project.urls]
@@ -52,8 +52,8 @@ test = [
     "pytest-mock>=3",
 ]
 lint = [
-    "ruff>=0.16.2",
-    "pre-commit>=4.6.1",
+    "ruff>=0.16.3",
+    "pre-commit>=4.6.2",
 ]
 
 [build-system]
