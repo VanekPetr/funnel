@@ -70,6 +70,14 @@ include = [
     "src/ifunnel"
 ]
 
+[tool.bumpversion]
+allow_dirty = false
+# /rhiza:release commits and tags itself so the changelog lands in the bump
+# commit; a bare `bump-my-version bump` would add a second commit and a
+# duplicate tag.
+commit = false
+tag = false
+
 [tool.mypy]
 python_version = "3.11"
 strict = true
