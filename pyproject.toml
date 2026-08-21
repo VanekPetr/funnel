@@ -110,6 +110,47 @@ module = ["cvxpy", "cvxpy.*"]
 follow_imports = "skip"
 follow_imports_for_stubs = true
 
+[tool.rhiza-task]
+# Settings recovered from the make layer that rhiza v1.4.0 retired. Only entries whose
+# value differs from rhiza-task's own default are listed: naming a setting that already
+# matches is the line someone later edits and drifts.
+#
+# typechecker: `.rhiza/make.d/python.mk` had `TYPECHECKER ?= both`; the CLI defaults to
+# `ty` alone. Without this line the `typecheck` gate silently stops running mypy --strict,
+# and the [tool.mypy] config and the cvxpy override above become dead weight. It also gets
+# *stricter* than the make layer was: the old shell `case` let mypy's exit status win, so a
+# `ty` failure could pass.
+typechecker = "both"
+
+# pytest_rhiza: `.rhiza/make.d/quality.mk` pinned `RHIZA_CHECKS_VERSION ?= 0.2.1`, which it
+# installed as `pytest-rhiza==0.2.1`. The CLI default is *older* — `pytest-rhiza @
+# git+https://github.com/Jebel-Quant/pytest-rhiza@v0.2.0` — so leaving this unset would
+# downgrade the rhiza-check assertions rather than preserve them.
+pytest_rhiza = "pytest-rhiza==0.2.1"
+
+# Not set, on purpose — each of these matched rhiza-task 0.3.1's default exactly, so
+# naming it would add a maintenance surface without changing behaviour:
+#   source_folder ("src") and marimo_folder ("docs/notebooks") — from `.rhiza/.env`.
+#   coverage_fail_under (90), tests_folder ("tests"), uv_sync_args
+#     ("--all-extras --all-groups"), license_fail_on ("GPL;LGPL;AGPL") — from `python.mk`.
+#   zensical_version (">=0.0.36"), book_output ("_book") — from `book.mk`.
+#   rhiza_checks — `python.mk`, `quality.mk` and `test.mk` accumulated five modules with
+#     `+=`; `rhiza_checks_for(("python",))` derives exactly the same five from the layer
+#     set, so the accumulator is reproduced, not lost.
+#   mkdocs_extra_packages — the old `Makefile` set `--with 'mkdocstrings[python]'`, which
+#     is now the default. Restating it would be worse than omitting it: naming this setting
+#     *replaces* the default list, so the next person adding a package would silently drop
+#     mkdocstrings from the book build.
+#   license_ignore_packages — `marimo.mk` appended `docutils`; rhiza-task appends it itself
+#     whenever the marimo tasks are registered.
+#   deptry_ignore — `marimo.mk` appended `--ignore DEP004`; rhiza-task derives that too,
+#     when the marimo tasks are registered and the marimo folder exists.
+#   ci_os_matrix — `.rhiza/.env` deliberately left `RHIZA_CI_OS_MATRIX` unset so that
+#     `rhiza_ci.yml` could pick the matrix per caller. Pinning it here would defeat that.
+#
+# Cosmetic make variables with no equivalent and nothing to preserve: PROJECT_NAME_EXTRA
+# and LOG_LEVEL (`custom-env.mk`), VENV, FORGE_TYPE and the derived *_FOLDERS lists.
+
 [tool.deptry.per_rule_ignores]
 DEP002 = ["clarabel","pyarrow","ecos","mosek","cvxpy-base","pydantic"]
 
