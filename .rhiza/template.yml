@@ -1,5 +1,5 @@
 repository: "jebel-quant/rhiza"
-ref: "v1.3.4"
+ref: "v1.4.2"
 
 profiles:
     - github-project
@@ -7,3 +7,19 @@ profiles:
 templates:
     - devcontainer
     - legal
+
+# Paths matched against the *destination* (where the file lands here), not the
+# clone-relative bundle path — `normalise_excludes` only tidies separators.
+exclude:
+    # Opt-in gates this repo has never opted into: `gh variable list` is empty, so
+    # neither MUTATION_ENABLED nor FUZZING_ENABLED is set. mutation's gate is in the
+    # caller so it never starts; fuzzing's is inside the reusable workflow, so it ran
+    # on every PR just to skip. Deleting them is not reversible by setting the
+    # variable — restore the caller from the template first if that changes.
+    - .github/workflows/rhiza_mutation.yml
+    - .github/workflows/rhiza_fuzzing.yml
+    # GitHub issue/discussion forms and config are this repo's to own, not the
+    # template's to keep restoring.
+    - .github/CONFIG.md
+    - .github/DISCUSSION_TEMPLATE
+    - .github/ISSUE_TEMPLATE

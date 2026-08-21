@@ -58,7 +58,7 @@ def final_stats(data: pd.DataFrame) -> pd.DataFrame:
     mu_ga = round(mean_an_returns(data), 2)  # annual geometric mean
     std_dev_a = round(data.std(axis=0) * np.sqrt(52), 2)  # standard deviation of Annual Returns
 
-    stat_df = pd.concat([mu_ga, std_dev_a], axis=1)  # table
+    stat_df = pd.concat([mu_ga, std_dev_a], axis=1)  # table  # ty: ignore[no-matching-overload]
     stat_names = ["Average Annual Returns", "Standard Deviation of Returns"]
     stat_df.columns = stat_names  # add names
 
