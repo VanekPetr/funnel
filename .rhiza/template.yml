@@ -11,6 +11,10 @@ templates:
 # Paths matched against the *destination* (where the file lands here), not the
 # clone-relative bundle path — `normalise_excludes` only tidies separators.
 exclude:
+    # SECURITY.md makes factual claims about THIS repo's security posture (which scanners,
+    # which release protections). Only the repo knows which are true -- the template shipped a
+    # fuzzing claim that was false here -- so the file is owned here, not template-managed.
+    - SECURITY.md
     # Opt-in gates this repo has never opted into: `gh variable list` is empty, so
     # neither MUTATION_ENABLED nor FUZZING_ENABLED is set. mutation's gate is in the
     # caller so it never starts; fuzzing's is inside the reusable workflow, so it ran

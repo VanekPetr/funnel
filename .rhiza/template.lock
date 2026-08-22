@@ -4,6 +4,7 @@ host: github
 ref: v1.4.2
 include: []
 exclude:
+- SECURITY.md
 - .github/workflows/rhiza_mutation.yml
 - .github/workflows/rhiza_fuzzing.yml
 - .github/CONFIG.md
@@ -40,7 +41,6 @@ files:
 - .rhiza/CONTRIBUTING.md
 - .rhiza/semgrep.yml
 - LICENSE
-- SECURITY.md
 - cliff.toml
 - docs/assets/rhiza-logo.svg
 - docs/development/DEVCONTAINER.md
