@@ -8,6 +8,7 @@ exclude:
 - .github/CONFIG.md
 templates:
 - devcontainer
+- github-paper
 - legal
 profiles:
 - github-project
@@ -27,6 +28,7 @@ files:
 - .github/workflows/rhiza_ci.yml
 - .github/workflows/rhiza_codeql.yml
 - .github/workflows/rhiza_marimo.yml
+- .github/workflows/rhiza_paper.yml
 - .github/workflows/rhiza_release.yml
 - .github/workflows/rhiza_scorecard.yml
 - .github/workflows/rhiza_weekly.yml
@@ -46,8 +48,9 @@ files:
 - docs/development/VSCODE_EXTENSIONS.md
 - docs/index.md
 - docs/mkdocs-base.yml
+- docs/paper/README.md
 - pytest.ini
 - ruff.toml
 - tests/test_rhiza_packaging.py
-synced_at: '2026-08-23T12:00:20Z'
+synced_at: '2026-08-23T12:41:17Z'
 strategy: merge
