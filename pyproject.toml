@@ -1,7 +1,7 @@
 [project]
 name = 'ifunnel'
 version = "0.1.0"
-description = "Backend for the investment-funnel"
+description = "Investment-funnel backend: MST and clustering asset selection, bootstrap or Monte Carlo scenarios, and CVaR or mean-variance optimisation with transaction costs"
 license = "MIT"
 # Please add authors and correct the email...
 authors = [{name='Thomas Schmelzer', email= 'thomas.schmelzer@gmail.com'},
@@ -9,6 +9,16 @@ authors = [{name='Thomas Schmelzer', email= 'thomas.schmelzer@gmail.com'},
 ]
 readme = "README.md"
 requires-python = ">=3.11"
+keywords = [
+    "cvar",
+    "portfolio-optimization",
+    "asset-allocation",
+    "minimum-spanning-tree",
+    "scenario-generation",
+    "quantitative-finance",
+    "cvxpy",
+    "lifecycle-investing",
+]
 # Source of truth for the CI Python matrix: rhiza's ci workflow reads these
 # classifiers to decide which versions `test` and `typecheck` run against.
 # Adding or removing one changes CI coverage, so only list versions that pass.
