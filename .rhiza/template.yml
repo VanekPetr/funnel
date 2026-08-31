@@ -1,5 +1,5 @@
 repository: "jebel-quant/rhiza"
-ref: "v1.6.0"
+ref: "v1.7.1"
 
 profiles:
     - github-project
@@ -7,8 +7,8 @@ profiles:
 templates:
     - devcontainer
     # Ships .github/workflows/rhiza_paper.yml, which compiles docs/paper/*.tex into a PDF
-    # published as a workflow artifact (and, via the book, as a docs-site asset). Pulls in
-    # the `paper` bundle, whose docs/paper/README.md explains the layout the workflow expects.
+    # published as a workflow artifact (and, via the book, as a docs-site asset). The layout
+    # it expects is documented upstream: https://jebel-quant.github.io/rhiza/development/PAPER/
     - github-paper
     - legal
 
