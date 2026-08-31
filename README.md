@@ -1,9 +1,8 @@
-# [funnel](https://tschm.github.io/funnel)
+# [funnel](https://vanekpetr.github.io/funnel/)
 
-[![PyPI version](https://badge.fury.io/py/funnel.svg)](https://badge.fury.io/py/funnel)
+[![PyPI version](https://badge.fury.io/py/ifunnel.svg)](https://badge.fury.io/py/ifunnel)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI](https://github.com/tschm/funnel/actions/workflows/ci.yml/badge.svg)](https://github.com/tschm/funnel/actions/workflows/ci.yml)
-[![Coverage Status](https://coveralls.io/repos/github/tschm/funnel/badge.svg?branch=main)](https://coveralls.io/github/tschm/funnel?branch=main)
+[![CI](https://github.com/VanekPetr/funnel/actions/workflows/rhiza_ci.yml/badge.svg)](https://github.com/VanekPetr/funnel/actions/workflows/rhiza_ci.yml)
 
 `ifunnel` is a Python-based investment funnel backend designed for asset selection, portfolio optimization, and lifecycle investing. It provides tools for data preprocessing, risk modeling, and scenario analysis to help build and backtest sophisticated investment strategies.
 
