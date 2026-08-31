@@ -1,7 +1,7 @@
-sha: e556617285b215566e563c58022c3a031e870aad
+sha: da1e30177bebbd6fea9983bb36f5eef311e40235
 repo: jebel-quant/rhiza
 host: github
-ref: v1.6.0
+ref: v1.7.1
 include: []
 exclude:
 - SECURITY.md
@@ -41,16 +41,11 @@ files:
 - LICENSE
 - Makefile
 - cliff.toml
-- docs/assets/rhiza-logo.svg
-- docs/development/DEVCONTAINER.md
-- docs/development/MARIMO.md
-- docs/development/TESTS.md
-- docs/development/VSCODE_EXTENSIONS.md
+- docs/development/rhiza.md
 - docs/index.md
 - docs/mkdocs-base.yml
-- docs/paper/README.md
 - pytest.ini
 - ruff.toml
 - tests/test_rhiza_packaging.py
-synced_at: '2026-08-24T14:46:55Z'
+synced_at: '2026-08-31T17:54:23Z'
 strategy: merge
