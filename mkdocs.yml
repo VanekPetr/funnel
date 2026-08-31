@@ -20,7 +20,4 @@ nav:
       - Docker: DOCKER.md
       - Agentic Workflows: GH_AW.md
   - Development:
-      - DevContainer: development/DEVCONTAINER.md
-      - Marimo Notebooks: development/MARIMO.md
-      - Tests: development/TESTS.md
-      - VS Code Extensions: development/VSCODE_EXTENSIONS.md
+      - Rhiza tooling: development/rhiza.md
