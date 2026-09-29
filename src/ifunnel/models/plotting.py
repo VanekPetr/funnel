@@ -49,6 +49,18 @@ def plot_backtest(
 
     Returns:
         Tuple of (performance line chart, composition stacked-bar chart).
+
+    Example:
+        >>> import pandas as pd
+        >>> idx = pd.date_range("2024-01-01", periods=3, freq="W", tz="UTC")
+        >>> performance = pd.DataFrame({"Portfolio": [100.0, 101.0, 102.0]}, index=idx)
+        >>> benchmark = pd.DataFrame({"Benchmark": [100.0, 100.5, 101.0]}, index=idx)
+        >>> composition = pd.DataFrame({"A": [0.6], "B": [0.4]}, index=idx[:1])
+        >>> perf_fig, comp_fig = plot_backtest(
+        ...     performance, benchmark, composition, names=["Asset A", "Asset B"], tickers=["A", "B"]
+        ... )
+        >>> type(perf_fig).__name__, type(comp_fig).__name__
+        ('Figure', 'Figure')
     """
     performance.index = pd.to_datetime(performance.index.values, utc=True)
 

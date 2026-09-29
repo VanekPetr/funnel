@@ -23,6 +23,13 @@ def mean_an_returns(data: pd.DataFrame) -> float | pd.Series:
         Union[float, pd.Series]: Annualized geometric mean return for each asset.
                                 If data has one column, returns a float;
                                 otherwise, returns a pandas Series.
+
+    Example:
+        A year of 1% weekly returns compounds to roughly 67.8%:
+
+        >>> import pandas as pd
+        >>> round(float(mean_an_returns(pd.DataFrame({"A": [0.01] * 52})).iloc[0]), 4)
+        0.6777
     """
     result = 1
     for i in range(len(data.index)):

@@ -32,6 +32,13 @@ def cholesky_psd(m: np.ndarray | pd.DataFrame) -> np.ndarray:
 
     Raises:
         AssertionError: If the D matrix from LDL decomposition is not diagonal.
+
+    Example:
+        >>> import numpy as np
+        >>> m = np.array([[4.0, 2.0], [2.0, 3.0]])
+        >>> c = cholesky_psd(m)
+        >>> bool(np.allclose(c.T @ c, m))
+        True
     """
     lu, d, _perm = sp.linalg.ldl(m)
     if np.max(np.abs(d - np.diag(np.diag(d)))) >= 1e-12:

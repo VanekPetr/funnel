@@ -162,6 +162,12 @@ class MomentGenerator:
 
         Returns:
         - A tuple containing two DataFrames: (sampling_set, estimating_set).
+
+        Example:
+            >>> import pandas as pd
+            >>> sampling, estimating = MomentGenerator.split_dataset(pd.DataFrame({"r": range(10)}), 0.6)
+            >>> len(sampling), len(estimating)
+            (6, 4)
         """
         # Ensure the sampling ratio is between 0 and 1
         if not (0 < sampling_ratio < 1):
