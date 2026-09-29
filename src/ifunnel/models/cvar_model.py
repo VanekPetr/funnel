@@ -30,7 +30,7 @@ def rebalancing_model(
     solver: str,
     inaccurate: bool,
     lower_bound: int,
-) -> tuple[pd.Series, float, float, float] | None:
+) -> tuple[pd.Series, float, float, float]:
     """Find the optimal portfolio that maximizes return subject to CVaR constraints.
 
     This function optimizes a portfolio to maximize expected return while respecting
@@ -52,15 +52,14 @@ def rebalancing_model(
         lower_bound: Minimum weight given to each selected asset
 
     Returns:
-        Optional[Tuple[pd.Series, float, float, float]]: If optimization succeeds, returns:
+        Tuple[pd.Series, float, float, float]: The optimisation result:
             - pd.Series: Optimal portfolio weights
             - float: Resulting portfolio CVaR
             - float: Portfolio value
             - float: Remaining cash
-        If optimization fails, returns None and logs an error
 
     Raises:
-        No exceptions are raised as errors are caught and logged
+        RuntimeError: If the solver does not find an optimal solution.
     """
     # Define index
     i_idx = scenarios.columns
@@ -152,8 +151,9 @@ def rebalancing_model(
         with open("rebalance_inputs.pkl", "wb") as file:
             pickle.dump(inputs, file)
 
-        # Print an error if the model is not optimal
-        logger.exception(f"❌ Solver does not find optimal solution. Status code is {model.status}")
+        # Raise an error if the model is not optimal
+        logger.error(f"❌ Solver does not find optimal solution. Status code is {model.status}")
+        raise RuntimeError(f"Solver did not find an optimal solution (status: {model.status})")  # noqa: TRY003
 
 
 # ----------------------------------------------------------------------
@@ -222,7 +222,7 @@ def cvar_model(
         expected_returns = sum(prob * scenarios_df.loc[i, :] for i in scenarios_df.index)
 
         # run CVaR model
-        p_alloc, cvar_val, port_val, cash = rebalancing_model(  # ty: ignore[not-iterable]
+        p_alloc, cvar_val, port_val, cash = rebalancing_model(
             mu=expected_returns,
             scenarios=scenarios_df,
             cvar_targets=targets.loc[p, "CVaR_Target"] * portfolio_value_w,
