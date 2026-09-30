@@ -30,6 +30,21 @@ def minimum_spanning_tree(dataset: pd.DataFrame) -> tuple[list[str], pd.DataFram
             - pd.DataFrame: DataFrame containing only the selected assets' data
             - float: Average correlation among the selected assets
             - float: Portfolio Diversification Index (PDI) for the selected assets
+
+    Example:
+        One asset is kept from each of two anti-correlated pairs:
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> rng = np.random.default_rng(0)
+        >>> base = rng.normal(size=(60, 1))
+        >>> noise = 0.1 * rng.normal(size=(60, 4))
+        >>> data = pd.DataFrame(np.hstack([base, base, -base, -base]) + noise, columns=list("ABCD"))
+        >>> selected, subset, avg_corr, pdi = minimum_spanning_tree(data)
+        >>> len(set(selected) & {"A", "B"}), len(set(selected) & {"C", "D"})
+        (1, 1)
+        >>> list(subset.columns) == selected
+        True
     """
     logger.debug("💡 Running MST method")
 

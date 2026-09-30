@@ -54,6 +54,13 @@ def initialize_bot(file: str | Path | None = None) -> "_TradeBot":
 
     Returns:
         _TradeBot: An initialized trading bot instance ready for analysis.
+
+    Example:
+        Without a file, the ETF returns bundled with the package are loaded:
+
+        >>> bot = initialize_bot()
+        >>> len(bot.tickers) == bot.weeklyReturns.shape[1]
+        True
     """
     if file is None:
         root_dir = Path(__file__).parent.parent

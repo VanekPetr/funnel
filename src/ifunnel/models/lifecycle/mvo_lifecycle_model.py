@@ -47,7 +47,14 @@ def calculate_risk_metrics(
 
 
 def calculate_analysis_metrics(terminal_values: pd.Series) -> pd.DataFrame:
-    """Calculate various metrics from the terminal values of the portfolio."""
+    """Calculate various metrics from the terminal values of the portfolio.
+
+    Example:
+        >>> import pandas as pd
+        >>> metrics = calculate_analysis_metrics(pd.Series([float(v) for v in range(91, 101)]))
+        >>> float(metrics["Mean Terminal Value"].iloc[0]), float(metrics["Lower Quartile Average"].iloc[0])
+        (95.5, 91.5)
+    """
     mean_terminal_value = np.mean(terminal_values)
     stdev_terminal_value = np.std(terminal_values)
     max_terminal_value = np.max(terminal_values)

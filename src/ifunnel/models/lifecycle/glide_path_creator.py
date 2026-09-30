@@ -27,6 +27,14 @@ def generate_risk_profiles(n_periods: int, initial_risk: float, minimum_risk: fl
         Tuple containing:
             - pd.DataFrame: DataFrame with the risk values for each period and profile type
             - go.Figure: Plotly line chart visualizing the different risk profiles
+
+    Example:
+        >>> profiles, fig = generate_risk_profiles(n_periods=3, initial_risk=0.2, minimum_risk=0.05)
+        >>> profiles.round(4)
+           Linear GP  Concave GP  Convex GP
+        0      0.200      0.2000     0.2000
+        1      0.125      0.1625     0.0939
+        2      0.050      0.0500     0.0500
     """
     df = pd.DataFrame(index=range(n_periods))
     x_values = np.linspace(0, 1, n_periods)

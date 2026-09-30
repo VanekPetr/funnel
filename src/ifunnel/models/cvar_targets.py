@@ -31,6 +31,12 @@ def cvar(alpha: float, p: np.ndarray, q: np.ndarray) -> tuple[float, float]:
 
     Note:
         Inputs p and q must be numpy arrays.
+
+    Example:
+        >>> import numpy as np
+        >>> var, cvar_value = cvar(0.75, np.full(4, 0.25), np.array([1.0, 2.0, 3.0, 4.0]))
+        >>> float(var), float(cvar_value)
+        (3.0, 4.0)
     """
     # We need to be careful that math index starts from 1 but numpy starts from 0
     # (matters in formulas like ceil(alpha * T))

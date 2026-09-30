@@ -60,6 +60,29 @@ def rebalancing_model(
 
     Raises:
         RuntimeError: If the solver does not find an optimal solution.
+
+    Example:
+        With a loose CVaR target, the whole budget goes to the higher-return asset:
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> rng = np.random.default_rng(0)
+        >>> scenarios = pd.DataFrame(rng.normal(0.01, 0.05, size=(50, 2)), columns=["A", "B"])
+        >>> weights, cvar_value, port_value, cash = rebalancing_model(
+        ...     mu=pd.Series([0.01, 0.02], index=["A", "B"]),
+        ...     scenarios=scenarios,
+        ...     cvar_targets=20.0,
+        ...     cvar_alpha=0.05,
+        ...     cash=100.0,
+        ...     x_old=pd.Series([0.0, 0.0], index=["A", "B"]),
+        ...     trans_cost=0.0,
+        ...     max_weight=1.0,
+        ...     solver="CLARABEL",
+        ...     inaccurate=True,
+        ...     lower_bound=0,
+        ... )
+        >>> weights.idxmax(), round(float(weights.sum()), 6)
+        ('B', 1.0)
     """
     # Define index
     i_idx = scenarios.columns

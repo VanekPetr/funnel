@@ -57,6 +57,19 @@ def cluster(data: pd.DataFrame, n_clusters: int, dendrogram: bool = False) -> pd
 
     Returns:
         pd.DataFrame: DataFrame with the cluster assignments for each asset.
+
+    Example:
+        Two pairs of assets that move against each other form two clusters:
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> rng = np.random.default_rng(0)
+        >>> base = rng.normal(size=(60, 1))
+        >>> noise = 0.1 * rng.normal(size=(60, 4))
+        >>> data = pd.DataFrame(np.hstack([base, base, -base, -base]) + noise, columns=list("ABCD"))
+        >>> labels = cluster(data, n_clusters=2)["Complete_Corr"]
+        >>> bool(labels["A"] == labels["B"] != labels["C"] == labels["D"])
+        True
     """
     logger.info("💡 Running hierarchical clustering method")
 

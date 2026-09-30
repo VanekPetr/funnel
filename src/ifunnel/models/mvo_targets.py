@@ -25,6 +25,13 @@ def portfolio_risk_target(covariance: np.ndarray) -> float:
 
     Returns:
         float: Portfolio volatility (standard deviation of returns)
+
+    Example:
+        Two uncorrelated assets with 20% volatility each, held equally:
+
+        >>> import numpy as np
+        >>> round(float(portfolio_risk_target(np.array([[0.04, 0.0], [0.0, 0.04]]))), 4)
+        0.1414
     """
     # Fixed equal weight x
     n = covariance.shape[0]
