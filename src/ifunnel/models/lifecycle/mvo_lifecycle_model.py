@@ -114,6 +114,9 @@ def lifecycle_rebalance_model(
     - port_nom: Nominal allocations for each asset in the optimized portfolio.
     - port_val: Total value of the portfolio based on the allocations.
 
+    Raises:
+    - RuntimeError: If the solver does not find an optimal solution.
+
     This function uses convex optimization to find the asset weights that maximize
     expected returns subject to constraints on total weight, individual asset weights,
     and portfolio volatility. It optionally includes binary selection variables to enforce
@@ -166,13 +169,11 @@ def lifecycle_rebalance_model(
         return port_nom, port_val
 
     else:
-        # Handle non-optimal solve status
-        logger.exception(
+        # Raise an error if the model is not optimal
+        logger.error(
             f"The model is {model.status}. Look into the constraints. It might be an issue of too low risk targets."
         )
-        port_nom = pd.Series(np.nan, index=mu.index)  # Use NaNs to indicate failure
-        port_val = np.sum(port_nom)
-        return port_nom, port_val
+        raise RuntimeError(f"Solver did not find an optimal solution (status: {model.status})")  # noqa: TRY003
 
 
 def get_port_allocations(
