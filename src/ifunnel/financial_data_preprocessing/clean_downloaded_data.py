@@ -6,8 +6,10 @@ price data into weekly returns suitable for portfolio optimization.
 """
 
 import os
+from pathlib import Path
 
 import pandas as pd
+from loguru import logger
 
 
 def _drop_incomplete_columns(data: pd.DataFrame) -> pd.DataFrame:
@@ -29,7 +31,7 @@ def _fill_missing_prices(data_raw: pd.DataFrame) -> pd.DataFrame:
             for date_future in list(data_raw.index)[indx:]:
                 if data_raw.loc[date_future, asset]:
                     data.loc[date, asset] = data_raw.loc[date_future, asset]
-                    print("found price")
+                    logger.debug(f"Filled missing price of {asset} on {date} from {date_future}")
                     break
     return data
 
@@ -43,7 +45,7 @@ def _drop_outlier_assets(data: pd.DataFrame) -> pd.DataFrame:
         for value in column[1:]:
             if abs((value / value_old) - 1) > 0.20:
                 to_delete.append(asset)
-                print(asset, (value / value_old) - 1, len(to_delete))
+                logger.info(f"Dropping {asset}: daily return of {(value / value_old) - 1:.2%} exceeds 20%")
                 break
             value_old = value
     for delete_col in to_delete:
@@ -62,7 +64,7 @@ def _select_weekly_wednesdays(data: pd.DataFrame) -> pd.DataFrame:
     while date_test < date_list[-1]:
         date_test = date_test + pd.Timedelta(days=7)
         if date_test not in data_wed.index:
-            print(date_test)
+            logger.debug(f"Filling missing Wednesday {date_test} from 5 days prior")
             data_wed.loc[date_test] = data.loc[date_test - pd.Timedelta(days=5)].to_list()
 
     return data_wed.sort_index()
@@ -81,7 +83,7 @@ def _to_weekly_returns(data_wed: pd.DataFrame) -> pd.DataFrame:
     return data_wed_rets[wanted_columns]
 
 
-def clean_data(data_raw: pd.DataFrame) -> pd.DataFrame | None:
+def clean_data(data_raw: pd.DataFrame, output_path: str | Path | None = None) -> pd.DataFrame:
     """Clean raw financial data and transform it into weekly returns.
 
     This function processes raw price data by:
@@ -95,10 +97,11 @@ def clean_data(data_raw: pd.DataFrame) -> pd.DataFrame | None:
     Args:
         data_raw: DataFrame containing raw daily price data with dates as index
                  and assets as columns
+        output_path: Optional file to write the weekly returns to as gzip-compressed
+                 parquet. Nothing is written when it is omitted.
 
     Returns:
-        Optional[pd.DataFrame]: DataFrame containing weekly returns, or None if
-                               the data is saved directly to a file
+        pd.DataFrame: DataFrame containing weekly returns
     """
     data_raw = data_raw.fillna("")
     data_raw = _drop_incomplete_columns(data_raw)
@@ -107,11 +110,10 @@ def clean_data(data_raw: pd.DataFrame) -> pd.DataFrame | None:
     data_wed = _select_weekly_wednesdays(data)
     data_wed_rets = _to_weekly_returns(data_wed)
 
-    # Save results with returns into data folder for the app
-    data_wed_rets.to_parquet(
-        os.path.join(os.path.dirname(os.getcwd()), "financial_data/all_etfs_rets.parquet.gzip"),
-        compression="gzip",
-    )
+    if output_path is not None:
+        data_wed_rets.to_parquet(output_path, compression="gzip")
+
+    return data_wed_rets
 
 
 if __name__ == "__main__":  # pragma: no cover
@@ -121,4 +123,7 @@ if __name__ == "__main__":  # pragma: no cover
     subset_data = daily_prices[(daily_prices.index > "2013-01-01") & (daily_prices.index < "2024-07-28")]
 
     # Clean data and save for the investment funnel app
-    clean_data(data_raw=subset_data)
+    clean_data(
+        data_raw=subset_data,
+        output_path=os.path.join(os.path.dirname(os.getcwd()), "financial_data/all_etfs_rets.parquet.gzip"),
+    )
