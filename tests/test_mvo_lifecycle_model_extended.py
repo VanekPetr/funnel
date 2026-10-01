@@ -90,16 +90,15 @@ class TestLifecycleRebalanceModel:
         max_weight = 0.5
         solver = "CLARABEL"
 
-        port_nom, _port_val = lifecycle_rebalance_model(
-            mu=simple_mu,
-            sigma=simple_sigma,
-            vol_target=vol_target,
-            max_weight=max_weight,
-            solver=solver,
-        )
-
-        # Should still return a series (may contain NaN for infeasible)
-        assert isinstance(port_nom, pd.Series)
+        # A non-optimal solve raises rather than returning NaN allocations
+        with pytest.raises(RuntimeError, match="Solver did not find an optimal solution"):
+            lifecycle_rebalance_model(
+                mu=simple_mu,
+                sigma=simple_sigma,
+                vol_target=vol_target,
+                max_weight=max_weight,
+                solver=solver,
+            )
 
 
 class TestGetPortAllocations:
@@ -381,28 +380,22 @@ class TestLifecycleRebalanceModelFailure:
         )
         return pd.DataFrame(data, index=infeasible_mu.index, columns=infeasible_mu.index)
 
-    def test_infeasible_optimization_returns_nan(self, infeasible_mu, infeasible_sigma):
-        """Test that infeasible optimization returns NaN values."""
+    def test_infeasible_optimization_raises(self, infeasible_mu, infeasible_sigma):
+        """Test that an infeasible optimization raises instead of returning NaNs."""
         # Set extremely restrictive constraints that can't be satisfied
         vol_target = 0.0000001  # Impossibly low volatility target
         max_weight = 0.001  # Very restrictive max weight
         solver = "CLARABEL"
 
-        port_nom, _port_val = lifecycle_rebalance_model(
-            mu=infeasible_mu,
-            sigma=infeasible_sigma,
-            vol_target=vol_target,
-            max_weight=max_weight,
-            solver=solver,
-            inaccurate=False,  # Don't accept inaccurate solutions
-        )
-
-        # For infeasible problems, should return NaN Series
-        assert isinstance(port_nom, pd.Series)
-        # Check that it's either NaN or a valid solution
-        if not port_nom.isna().all():
-            # If solution found, weights should sum to 1
-            assert abs(port_nom.sum() - 1.0) < 1e-4
+        with pytest.raises(RuntimeError, match="Solver did not find an optimal solution"):
+            lifecycle_rebalance_model(
+                mu=infeasible_mu,
+                sigma=infeasible_sigma,
+                vol_target=vol_target,
+                max_weight=max_weight,
+                solver=solver,
+                inaccurate=False,  # Don't accept inaccurate solutions
+            )
 
 
 class TestCalculateRiskMetricsZeroDivision:
