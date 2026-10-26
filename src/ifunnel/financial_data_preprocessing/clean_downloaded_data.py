@@ -15,8 +15,8 @@ from loguru import logger
 def _drop_incomplete_columns(data: pd.DataFrame) -> pd.DataFrame:
     """Drop assets that lack data at the very start or end of the period."""
     for column in data.columns:
-        # if the first three or last three values of the column are not empty, then delete the column
-        if not data[column].values[:3].all() or not data[column].values[-3:].all():
+        # if any of the first three or last three values of the column is missing, then delete the column
+        if data[column].iloc[:3].isna().any() or data[column].iloc[-3:].isna().any():
             data.drop(column, axis=1, inplace=True)
     return data
 
@@ -26,10 +26,10 @@ def _fill_missing_prices(data_raw: pd.DataFrame) -> pd.DataFrame:
     data = data_raw.copy()
     for asset in data_raw.columns:
         for indx, date in enumerate(data_raw.index):
-            if data_raw.loc[date, asset]:
+            if pd.notna(data_raw.loc[date, asset]):
                 continue
             for date_future in list(data_raw.index)[indx:]:
-                if data_raw.loc[date_future, asset]:
+                if pd.notna(data_raw.loc[date_future, asset]):
                     data.loc[date, asset] = data_raw.loc[date_future, asset]
                     logger.debug(f"Filled missing price of {asset} on {date} from {date_future}")
                     break
@@ -56,7 +56,8 @@ def _drop_outlier_assets(data: pd.DataFrame) -> pd.DataFrame:
 def _select_weekly_wednesdays(data: pd.DataFrame) -> pd.DataFrame:
     """Keep Wednesday prices, backfilling any missing Wednesday from 5 days prior."""
     # Select only Wednesdays to be able to compute weekly returns
-    data_wed = data[pd.DatetimeIndex(data.index).weekday == 2]  # ty: ignore[unresolved-attribute]
+    # (a copy, because missing Wednesdays are written into it below)
+    data_wed = data[pd.DatetimeIndex(data.index).weekday == 2].copy()  # ty: ignore[unresolved-attribute]
 
     # Check if we have all Wednesdays' prices, if not fill it with the price 5 days in the past
     date_test = data_wed.index[0]
@@ -124,7 +125,8 @@ def clean_data(data_raw: pd.DataFrame, output_path: str | Path | None = None) ->
         >>> round(float(returns.loc["2024-01-10", "A"]), 4)
         0.049
     """
-    data_raw = data_raw.fillna("")
+    # Keep prices numeric: empty strings or other non-numeric gaps become NaN
+    data_raw = data_raw.apply(pd.to_numeric, errors="coerce")
     data_raw = _drop_incomplete_columns(data_raw)
     data = _fill_missing_prices(data_raw)
     data = _drop_outlier_assets(data)

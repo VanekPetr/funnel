@@ -1,5 +1,8 @@
 """Tests for clean_downloaded_data module."""
 
+import warnings
+
+import numpy as np
 import pandas as pd
 
 from ifunnel.financial_data_preprocessing.clean_downloaded_data import clean_data
@@ -185,3 +188,29 @@ def test_clean_data_with_missing_wednesday():
     # The missing Wednesday is filled with the price from 5 days earlier (Jan 6: 104)
     assert pd.Timestamp("2023-01-11") in result.index
     assert result.loc[pd.Timestamp("2023-01-11"), "Asset1"] == 104 / 102 - 1
+
+
+def test_clean_data_float_frame_with_nan_gaps():
+    """Test that NaN gaps in a float64 frame are handled without pandas warnings."""
+    dates = pd.date_range("2023-01-02", periods=28, freq="D")  # 4 weeks starting Monday
+    asset1_values = [100.0] * 9 + [110.0] * 19
+    asset1_values[9] = np.nan  # Missing Wednesday Jan 11, filled from the next day
+    data = pd.DataFrame(
+        {
+            "Asset1": asset1_values,
+            "Asset2": [np.nan] * 3 + [200.0] * 25,  # Missing first values, dropped
+            "Asset3": [300.0] * 28,
+        },
+        index=dates,
+    ).drop(dates[16])  # Remove Wednesday Jan 18, filled from 5 days earlier
+    assert (data.dtypes == "float64").all()
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", FutureWarning)
+        warnings.simplefilter("error", pd.errors.SettingWithCopyWarning)
+        result = clean_data(data)
+
+    assert list(result.columns) == ["Asset1", "Asset3"]
+    assert (result.dtypes == "float64").all()
+    assert result.loc[pd.Timestamp("2023-01-11"), "Asset1"] == 110 / 100 - 1
+    assert result.loc[pd.Timestamp("2023-01-18"), "Asset1"] == 0
