@@ -12,7 +12,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.io as pio
 from loguru import logger
 
 from . import plotting
@@ -29,8 +28,6 @@ from .mst import minimum_spanning_tree
 from .mvo_model import mvo_model
 from .mvo_targets import get_mvo_targets
 from .scenario_generation import MomentGenerator, ScenarioGenerator
-
-pio.renderers.default = "browser"
 
 # that's unfortunate but will be addressed later
 # ROOT_DIR = Path(__file__).parent.parent

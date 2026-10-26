@@ -14,9 +14,9 @@ from pathlib import Path
 
 import matplotlib as mpl
 
-# Force a non-interactive backend before pyplot is imported anywhere. Some model
-# code (e.g. clustering.cluster) calls plt.show(); on a GUI backend such as macOS's
-# 'macosx' that enters a blocking mainloop and hangs the suite (fatally so under
+# Force a non-interactive backend before pyplot is imported anywhere. Should any
+# code call plt.show(), on a GUI backend such as macOS's 'macosx' that enters a
+# blocking mainloop and hangs the suite (fatally so under
 # xdist, where the per-test signal timeout cannot interrupt the native loop).
 mpl.use("Agg", force=True)
 
