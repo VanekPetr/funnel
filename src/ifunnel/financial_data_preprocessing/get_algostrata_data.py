@@ -33,6 +33,14 @@ def batch(iterable: Sequence[T], n: int = 1) -> Iterator[Sequence[T]]:
 
     Yields:
         Iterator[Sequence[T]]: Consecutive batches from the iterable
+
+    Example:
+        The last batch holds whatever is left over:
+
+        >>> list(batch([1, 2, 3, 4, 5, 6, 7], 3))
+        [[1, 2, 3], [4, 5, 6], [7]]
+        >>> list(batch("abcde", 2))
+        ['ab', 'cd', 'e']
     """
     length = len(iterable)
     for ndx in range(0, length, n):
@@ -56,6 +64,14 @@ def get_algostrata_data() -> pd.DataFrame:
 
     Raises:
         requests.RequestException: If API requests fail
+
+    Example:
+        Needs network access and an AlgoStrata API key (``ALGOSTRATA_KEY``), so it is
+        not run as part of the tests:
+
+        >>> prices = get_algostrata_data()  # doctest: +SKIP
+        >>> prices.columns.nlevels  # doctest: +SKIP
+        2
     """
     id_list = []  # empty list of IDs
     isin_list = []  # empty list of isin codes
