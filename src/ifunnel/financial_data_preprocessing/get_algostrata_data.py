@@ -13,6 +13,7 @@ import dateutil.parser
 import numpy as np
 import pandas as pd
 import requests
+from loguru import logger
 
 from ..settings import settings
 
@@ -101,7 +102,7 @@ def get_algostrata_data() -> pd.DataFrame:
     # LOAD DATASET BY STEP, EACH STEP XY ASSETS
     for sub_id_list in batch(id_list, batch_size):
         # GET ASSET PRICE DATA
-        print("---- Starting round", rep + 1, "out of", round_rep, "----")
+        logger.debug(f"Starting round {rep + 1} out of {round_rep}")
         response = requests.post(
             settings.ALGOSTRATA_PRICES_URL,
             json={"idList": sub_id_list},
@@ -113,8 +114,7 @@ def get_algostrata_data() -> pd.DataFrame:
         )
 
         if response.status_code != 200:
-            print(f"Code {response.reason}, content {response.text}")
-            print("---- Error round", rep + 1, "out of", round_rep, "----")
+            logger.warning(f"Round {rep + 1} out of {round_rep} failed: {response.reason}, content {response.text}")
             continue
 
         data = response.json()  # downloaded data

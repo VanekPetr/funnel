@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ifunnel.models.main import _TradeBot, initialize_bot
+from ifunnel.models.main import TradeBot, initialize_bot
 
 
 @pytest.fixture
@@ -34,7 +34,64 @@ def trade_bot(sample_weekly_returns):
     names = [col[1] for col in sample_weekly_returns.columns]
     weekly_returns = sample_weekly_returns.copy()
     weekly_returns.columns = tickers
-    return _TradeBot(tickers, names, weekly_returns)
+    return TradeBot(tickers, names, weekly_returns)
+
+
+class TestPublicApi:
+    """Tests for the public TradeBot API and its deprecated aliases."""
+
+    def test_trade_bot_is_exported(self):
+        """Test that TradeBot is importable from the package root."""
+        import ifunnel
+
+        assert ifunnel.TradeBot is TradeBot
+        assert "TradeBot" in ifunnel.__all__
+
+    def test_initialize_bot_returns_separate_instances(self):
+        """Test that each initialize_bot call returns its own bot and data."""
+        bot1 = initialize_bot()
+        bot2 = initialize_bot()
+
+        assert bot1 is not bot2
+        assert bot1.weekly_returns is not bot2.weekly_returns
+
+        bot1.weekly_returns.iloc[0, 0] = 1e9
+        assert bot2.weekly_returns.iloc[0, 0] != 1e9
+
+    def test_init_leaves_callers_frame_unchanged(self, sample_weekly_returns):
+        """Test that the constructor copies the frame instead of renaming its columns."""
+        tickers = [col[0] for col in sample_weekly_returns.columns]
+        names = [col[1] for col in sample_weekly_returns.columns]
+        original = sample_weekly_returns.copy()
+
+        bot = TradeBot(tickers, names, sample_weekly_returns)
+
+        pd.testing.assert_frame_equal(sample_weekly_returns, original)
+        assert list(bot.weekly_returns.columns) == tickers
+
+    def test_weekly_returns_camel_case_alias_is_deprecated(self, trade_bot):
+        """Test that weeklyReturns still works but warns."""
+        with pytest.warns(DeprecationWarning, match="weekly_returns"):
+            assert trade_bot.weeklyReturns is trade_bot.weekly_returns
+
+        replacement = trade_bot.weekly_returns.iloc[:10]
+        with pytest.warns(DeprecationWarning, match="weekly_returns"):
+            trade_bot.weeklyReturns = replacement
+        assert trade_bot.weekly_returns is replacement
+
+    def test_private_trade_bot_alias_is_deprecated(self):
+        """Test that the old _TradeBot name still resolves but warns."""
+        from ifunnel.models import main
+
+        with pytest.warns(DeprecationWarning, match="TradeBot"):
+            assert main._TradeBot is TradeBot
+
+    def test_unknown_module_attribute_raises(self):
+        """Test that the module __getattr__ still raises for unknown names."""
+        from ifunnel.models import main
+
+        with pytest.raises(AttributeError):
+            _ = main.does_not_exist
 
 
 class TestInitializeBot:
@@ -47,11 +104,10 @@ class TestInitializeBot:
         sample_weekly_returns.to_parquet(file_path)
 
         # Clear the cache before testing
-        initialize_bot.cache_clear()
 
         bot = initialize_bot(file=str(file_path))
 
-        assert isinstance(bot, _TradeBot)
+        assert isinstance(bot, TradeBot)
         assert len(bot.tickers) == 4
         assert len(bot.names) == 4
 
@@ -61,15 +117,14 @@ class TestInitializeBot:
         sample_weekly_returns.to_parquet(file_path)
 
         # Clear the cache
-        initialize_bot.cache_clear()
 
         bot = initialize_bot(file=file_path)
 
-        assert isinstance(bot, _TradeBot)
+        assert isinstance(bot, TradeBot)
 
 
 class TestTradeBot:
-    """Tests for the _TradeBot class."""
+    """Tests for the TradeBot class."""
 
     def test_init(self, trade_bot):
         """Test TradeBot initialization."""
@@ -93,7 +148,7 @@ class TestTradeBot:
 
     def test_get_top_performing_assets(self, trade_bot):
         """Test get_top_performing_assets method."""
-        mid_date = str(trade_bot.weeklyReturns.index[100].date())
+        mid_date = str(trade_bot.weekly_returns.index[100].date())
 
         result = trade_bot.get_top_performing_assets(
             time_periods=[(trade_bot.min_date, mid_date), (mid_date, trade_bot.max_date)],
@@ -134,7 +189,7 @@ class TestTradeBot:
         names = [col[1] for col in data.columns]
         weekly_returns = data.copy()
         weekly_returns.columns = tickers
-        bot = _TradeBot(tickers, names, weekly_returns)
+        bot = TradeBot(tickers, names, weekly_returns)
 
         fig = bot.plot_dots(
             start_date=str(dates[0].date()),
@@ -286,7 +341,7 @@ class TestPlotBacktest:
             {"ISIN1": [0.5, 0.4, 0.3], "ISIN2": [0.3, 0.4, 0.5], "ISIN3": [0.2, 0.2, 0.2]}, index=[0, 1, 2]
         )
 
-        fig_performance, fig_composition = _TradeBot._TradeBot__plot_backtest(
+        fig_performance, fig_composition = TradeBot._TradeBot__plot_backtest(
             performance=performance,
             performance_benchmark=performance_benchmark,
             composition=composition,
@@ -312,7 +367,7 @@ class TestPlotBacktest:
             {"ISIN1": [0.5, 0.4, 0.3], "ISIN2": [0.3, 0.4, 0.5], "ISIN3": [0.2, 0.2, 0.2]}, index=[0, 1, 2]
         )
 
-        fig_performance, fig_composition = _TradeBot._TradeBot__plot_backtest(
+        fig_performance, fig_composition = TradeBot._TradeBot__plot_backtest(
             performance=performance,
             performance_benchmark=performance_benchmark,
             composition=composition,
@@ -342,7 +397,7 @@ class TestPlotPortfolioDensities:
             "Aggressive": pd.DataFrame({"ISIN1": [0.5, 0.4], "ISIN2": [0.4, 0.5], "Cash": [0.1, 0.1]}, index=[0, 1]),
         }
 
-        fig, composition_figures, fig_subplots = _TradeBot._TradeBot__plot_portfolio_densities(
+        fig, composition_figures, fig_subplots = TradeBot._TradeBot__plot_portfolio_densities(
             portfolio_performance_dict=portfolio_performance_dict,
             compositions=compositions,
             tickers=trade_bot.tickers,
@@ -365,7 +420,7 @@ class TestPlotPortfolioDensities:
             "Conservative_reverse": pd.DataFrame({"ISIN1": [0.2], "ISIN2": [0.3], "Cash": [0.5]}, index=[0]),
         }
 
-        fig, composition_figures, _fig_subplots = _TradeBot._TradeBot__plot_portfolio_densities(
+        fig, composition_figures, _fig_subplots = TradeBot._TradeBot__plot_portfolio_densities(
             portfolio_performance_dict=portfolio_performance_dict,
             compositions=compositions,
             tickers=trade_bot.tickers,
@@ -383,9 +438,9 @@ class TestBacktest:
     def test_backtest_markowitz(self, trade_bot):
         """Test backtest method with Markowitz model."""
         # Use shorter date ranges for faster testing
-        mid_date = str(trade_bot.weeklyReturns.index[50].date())
-        test_start = str(trade_bot.weeklyReturns.index[100].date())
-        test_end = str(trade_bot.weeklyReturns.index[140].date())
+        mid_date = str(trade_bot.weekly_returns.index[50].date())
+        test_start = str(trade_bot.weekly_returns.index[100].date())
+        test_end = str(trade_bot.weekly_returns.index[140].date())
 
         result = trade_bot.backtest(
             start_train_date=mid_date,
@@ -408,9 +463,9 @@ class TestBacktest:
 
     def test_backtest_cvar(self, trade_bot):
         """Test backtest method with CVaR model."""
-        mid_date = str(trade_bot.weeklyReturns.index[50].date())
-        test_start = str(trade_bot.weeklyReturns.index[100].date())
-        test_end = str(trade_bot.weeklyReturns.index[140].date())
+        mid_date = str(trade_bot.weekly_returns.index[50].date())
+        test_start = str(trade_bot.weekly_returns.index[100].date())
+        test_end = str(trade_bot.weekly_returns.index[140].date())
 
         result = trade_bot.backtest(
             start_train_date=mid_date,
@@ -514,7 +569,7 @@ class TestLifecycleScenarioAnalysis:
     def test_lifecycle_no_rng_seed(self, trade_bot):
         """Test lifecycle_scenario_analysis without rng_seed (rng_seed=0 branch)."""
         # Mock the plotting to avoid gaussian_kde issues with low-variance data
-        with patch.object(_TradeBot, "_TradeBot__plot_portfolio_densities") as mock_plot:
+        with patch.object(TradeBot, "_TradeBot__plot_portfolio_densities") as mock_plot:
             # Return mock figures
             mock_plot.return_value = (MagicMock(), {}, MagicMock())
 

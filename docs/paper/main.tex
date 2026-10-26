@@ -644,7 +644,7 @@ from ifunnel.models.mst import minimum_spanning_tree
 from ifunnel.models.clustering import cluster, pick_cluster
 
 bot = initialize_bot()
-sel = bot.weeklyReturns["2017-01-01":"2020-12-31"]
+sel = bot.weekly_returns["2017-01-01":"2020-12-31"]
 df = sel.copy()
 for _ in range(4):
     mst, df, corr_avg, pdi = minimum_spanning_tree(df)
