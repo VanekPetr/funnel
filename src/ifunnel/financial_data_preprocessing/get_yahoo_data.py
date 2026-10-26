@@ -31,6 +31,13 @@ def download_data(start_date: str, end_date: str, tickers: list[str]) -> pd.Data
 
     Raises:
         No exceptions are raised as errors are caught and logged
+
+    Example:
+        Needs network access to Yahoo Finance, so it is not run as part of the tests:
+
+        >>> prices = download_data("2023-01-01", "2023-02-01", ["SPY", "QQQ"])  # doctest: +SKIP
+        >>> sorted(prices.columns)  # doctest: +SKIP
+        ['QQQ', 'SPY']
     """
     # Download price data from Yahoo! finance based on list of ETF tickers and start/end dates.
     # `auto_adjust=True` folds splits and dividends into "Close" and drops the separate

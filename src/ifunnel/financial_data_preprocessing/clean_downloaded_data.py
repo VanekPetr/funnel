@@ -102,6 +102,27 @@ def clean_data(data_raw: pd.DataFrame, output_path: str | Path | None = None) ->
 
     Returns:
         pd.DataFrame: DataFrame containing weekly returns
+
+    Example:
+        A gap in ``A`` is filled from the next day, ``C`` is dropped for its 50% jump,
+        and four weeks of daily prices become three Wednesday-to-Wednesday returns:
+
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> idx = pd.bdate_range("2024-01-01", periods=20)
+        >>> prices = pd.DataFrame(
+        ...     {"A": np.linspace(100, 119, 20), "B": np.linspace(50, 69, 20), "C": np.full(20, 10.0)},
+        ...     index=idx,
+        ... )
+        >>> prices.loc[idx[5], "A"] = np.nan
+        >>> prices.loc[idx[10]:, "C"] = 15.0
+        >>> returns = clean_data(prices)
+        >>> list(returns.columns)
+        ['A', 'B']
+        >>> [d.strftime("%Y-%m-%d") for d in returns.index]
+        ['2024-01-10', '2024-01-17', '2024-01-24']
+        >>> round(float(returns.loc["2024-01-10", "A"]), 4)
+        0.049
     """
     data_raw = data_raw.fillna("")
     data_raw = _drop_incomplete_columns(data_raw)

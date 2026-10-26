@@ -23,6 +23,13 @@ class Settings(BaseSettings):
         ALGOSTRATA_NAMES_URL: URL for AlgoStrata names API endpoint.
         ALGOSTRATA_PRICES_URL: URL for AlgoStrata prices API endpoint.
         ALGOSTRATA_KEY: API key for AlgoStrata services.
+
+    Example:
+        Values are read from the environment (or a ``.env`` file); keyword
+        arguments take precedence:
+
+        >>> Settings(ALGOSTRATA_KEY="my-key").ALGOSTRATA_KEY
+        'my-key'
     """
 
     # Would you like to download the latest AlgoStrata's data?
