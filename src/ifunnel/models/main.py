@@ -6,8 +6,10 @@ and visualization tools to help users build and analyze diversified portfolios.
 The module supports backtesting, scenario analysis, and lifecycle investment modeling.
 """
 
+import warnings
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -29,49 +31,48 @@ from .mvo_model import mvo_model
 from .mvo_targets import get_mvo_targets
 from .scenario_generation import MomentGenerator, ScenarioGenerator
 
-# that's unfortunate but will be addressed later
-# ROOT_DIR = Path(__file__).parent.parent
-# Load our data
-# weekly_returns = pd.read_parquet(os.path.join(ROOT_DIR, "financial_data/all_etfs_rets.parquet.gzip"))
-# tickers = [pair[0] for pair in weekly_returns.columns.values]
-# names = [pair[1] for pair in weekly_returns.columns.values]
+
+@lru_cache(maxsize=1)  # Cache the parsed file; each bot gets its own copy
+def _load_weekly_returns(file: str | Path) -> pd.DataFrame:
+    """Read a weekly returns parquet file whose columns are (ticker, name) pairs."""
+    return pd.read_parquet(file)
 
 
-@lru_cache(maxsize=1)  # Cache the result of this function
-def initialize_bot(file: str | Path | None = None) -> "_TradeBot":
+def initialize_bot(file: str | Path | None = None) -> "TradeBot":
     """Initialize and return a trading bot instance.
 
-    This function creates and returns a _TradeBot instance initialized with
-    financial data from the specified file. The result is cached to avoid
-    reloading the data unnecessarily.
+    This function creates and returns a new TradeBot instance initialized with
+    financial data from the specified file. The parsed file is cached to avoid
+    reloading the data unnecessarily, but every call returns a separate bot.
 
     Args:
         file: Path to the parquet file containing financial return data.
              If None, uses the default file in the financial_data directory.
 
     Returns:
-        _TradeBot: An initialized trading bot instance ready for analysis.
+        TradeBot: An initialized trading bot instance ready for analysis.
 
     Example:
         Without a file, the ETF returns bundled with the package are loaded:
 
         >>> bot = initialize_bot()
-        >>> len(bot.tickers) == bot.weeklyReturns.shape[1]
+        >>> len(bot.tickers) == bot.weekly_returns.shape[1]
         True
+        >>> initialize_bot() is bot
+        False
     """
     if file is None:
         root_dir = Path(__file__).parent.parent
         file = root_dir / "financial_data" / "all_etfs_rets.parquet.gzip"
 
-    weekly_returns = pd.read_parquet(file)
+    weekly_returns = _load_weekly_returns(file)
 
     tickers = [pair[0] for pair in weekly_returns.columns.values]
     names = [pair[1] for pair in weekly_returns.columns.values]
-    weekly_returns.columns = tickers
-    return _TradeBot(tickers, names, weekly_returns)
+    return TradeBot(tickers, names, weekly_returns)
 
 
-class _TradeBot:
+class TradeBot:
     """Trading bot for financial portfolio optimization and analysis.
 
     This class provides methods for analyzing financial assets, selecting diversified
@@ -92,15 +93,35 @@ class _TradeBot:
             tickers: List of ticker symbols or identifiers for the assets
             names: List of human-readable names corresponding to the tickers
             weekly_returns: DataFrame containing weekly return data with dates as index
-                           and assets as columns
+                           and assets as columns. It is copied, so the caller's frame
+                           is left unchanged.
         """
         self.tickers = tickers
         self.names = names
-        self.weeklyReturns = weekly_returns
+        self.weekly_returns = weekly_returns.copy()
+        self.weekly_returns.columns = tickers
         self.min_date = str(weekly_returns.index[0])
         self.max_date = str(weekly_returns.index[-1])
 
-        weekly_returns.columns = tickers
+    @property
+    def weeklyReturns(self) -> pd.DataFrame:  # noqa: N802  # deprecated camelCase name kept for compatibility
+        """Deprecated alias for :attr:`weekly_returns`."""
+        warnings.warn(
+            "TradeBot.weeklyReturns is deprecated; use TradeBot.weekly_returns instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.weekly_returns
+
+    @weeklyReturns.setter
+    def weeklyReturns(self, value: pd.DataFrame) -> None:  # noqa: N802
+        """Deprecated alias for setting :attr:`weekly_returns`."""
+        warnings.warn(
+            "TradeBot.weeklyReturns is deprecated; use TradeBot.weekly_returns instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.weekly_returns = value
 
     @staticmethod
     def __plot_backtest(
@@ -134,8 +155,8 @@ class _TradeBot:
     def get_stat(self, start_date: str, end_date: str) -> pd.DataFrame:
         """METHOD COMPUTING ANNUAL RETURNS, ANNUAL STD. DEV. & SHARPE RATIO OF ASSETS."""
         # ANALYZE THE DATA for a given time period
-        weekly_data = self.weeklyReturns[
-            (self.weeklyReturns.index >= start_date) & (self.weeklyReturns.index <= end_date)
+        weekly_data = self.weekly_returns[
+            (self.weekly_returns.index >= start_date) & (self.weekly_returns.index <= end_date)
         ].copy()
 
         # Create table with summary statistics
@@ -256,8 +277,8 @@ class _TradeBot:
         fig, subset_mst = None, []
 
         # Starting subset of data for MST
-        subset_mst_df = self.weeklyReturns[
-            (self.weeklyReturns.index >= start_date) & (self.weeklyReturns.index <= end_date)
+        subset_mst_df = self.weekly_returns[
+            (self.weekly_returns.index >= start_date) & (self.weekly_returns.index <= end_date)
         ].copy()
 
         for _i in range(n_mst_runs):
@@ -285,8 +306,8 @@ class _TradeBot:
     ) -> tuple:
         """METHOD TO RUN MST METHOD AND PRINT RESULTS."""
         fig = None
-        dataset = self.weeklyReturns[
-            (self.weeklyReturns.index >= start_date) & (self.weeklyReturns.index <= end_date)
+        dataset = self.weekly_returns[
+            (self.weekly_returns.index >= start_date) & (self.weekly_returns.index <= end_date)
         ].copy()
         # CLUSTER DATA
         clusters = cluster(dataset, n_clusters)
@@ -329,11 +350,11 @@ class _TradeBot:
         benchmark_isin = [self.tickers[list(self.names).index(name)] for name in benchmarks]
 
         # Get train and testing datasets
-        whole_dataset = self.weeklyReturns[
-            (self.weeklyReturns.index >= start_train_date) & (self.weeklyReturns.index <= end_test_date)
+        whole_dataset = self.weekly_returns[
+            (self.weekly_returns.index >= start_train_date) & (self.weekly_returns.index <= end_test_date)
         ].copy()
-        test_dataset = self.weeklyReturns[
-            (self.weeklyReturns.index > start_test_date) & (self.weeklyReturns.index <= end_test_date)
+        test_dataset = self.weekly_returns[
+            (self.weekly_returns.index > start_test_date) & (self.weekly_returns.index <= end_test_date)
         ].copy()
 
         # SCENARIO GENERATION
@@ -450,7 +471,7 @@ class _TradeBot:
         # ------------------------------- PARAMETER INITIALIZATION -------------------------------
         if test_split != 0:
             sampling_set, estimating_set = MomentGenerator.split_dataset(
-                data=self.weeklyReturns[subset_of_assets], sampling_ratio=test_split
+                data=self.weekly_returns[subset_of_assets], sampling_ratio=test_split
             )
 
             _, _, sigma_weekly, mu_weekly = MomentGenerator.generate_annual_sigma_mu_with_risk_free(data=sampling_set)
@@ -458,7 +479,7 @@ class _TradeBot:
             sigma, mu, _, _ = MomentGenerator.generate_annual_sigma_mu_with_risk_free(data=estimating_set)
         else:
             sigma, mu, sigma_weekly, mu_weekly = MomentGenerator.generate_annual_sigma_mu_with_risk_free(
-                data=self.weeklyReturns[subset_of_assets]
+                data=self.weekly_returns[subset_of_assets]
             )
 
         # ------------------------------- SCENARIO GENERATION -------------------------------
@@ -477,7 +498,7 @@ class _TradeBot:
 
         elif scenarios_type == "Bootstrap":
             scenarios = sg.bootstrap_simulation_annual_from_weekly(
-                historical_weekly_returns=self.weeklyReturns[subset_of_assets],
+                historical_weekly_returns=self.weekly_returns[subset_of_assets],
                 n_simulations=n_simulations,
                 n_years=n_periods,
             )
@@ -548,18 +569,17 @@ class _TradeBot:
         )
 
 
+def __getattr__(name: str) -> Any:
+    """Resolve the deprecated ``_TradeBot`` alias of :class:`TradeBot`."""
+    if name == "_TradeBot":
+        warnings.warn("_TradeBot is deprecated; use TradeBot instead", DeprecationWarning, stacklevel=2)
+        return TradeBot
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")  # noqa: TRY003
+
+
 if __name__ == "__main__":  # pragma: no cover
     # INITIALIZATION OF THE CLASS
-
-    # that's unfortunate but will be addressed later
-    # ROOT_DIR = Path(__file__).parent.parent
-    # Load our data
-    # weekly_returns = pd.read_parquet(ROOT_DIR / "financial_data" / "all_etfs_rets.parquet.gzip")
-    # algo = build_bot(weekly_returns=weekly_returns)
-
     algo = initialize_bot()
-
-    # algo = TradeBot()
 
     # Get top performing assets for given periods and measure
     top_assets = algo.get_top_performing_assets(
