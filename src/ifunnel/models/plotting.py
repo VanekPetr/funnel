@@ -1,6 +1,6 @@
 """Plotly figure builders for the trading bot.
 
-These pure functions were extracted from ``main._TradeBot`` so that the bot's
+These pure functions were extracted from ``main.TradeBot`` so that the bot's
 orchestration logic (backtests, lifecycle analysis, asset selection) stays
 separate from the rendering code. Each function only constructs and returns
 Plotly figures; none mutate bot state.
