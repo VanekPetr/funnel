@@ -5,6 +5,7 @@ including target generation and model optimization. It verifies that the
 model produces expected allocations, portfolio values, and risk metrics.
 """
 
+import pickle
 from datetime import timedelta
 
 import numpy as np
@@ -218,7 +219,7 @@ class TestRebalancingModel:
         assert isinstance(opt_port, pd.Series)
         assert abs(opt_port.sum() - 1.0) < 0.01
 
-    def test_rebalancing_infeasible_constraints(self, simple_mu, simple_scenarios):
+    def test_rebalancing_infeasible_constraints(self, simple_mu, simple_scenarios, tmp_path, monkeypatch):
         """Test rebalancing with infeasible constraints triggers failure path."""
         # Create an impossible scenario: negative cash and existing position
         # that requires selling but has high transaction costs
@@ -230,29 +231,50 @@ class TestRebalancingModel:
         max_weight = 0.01  # Very restrictive max weight
         solver = "CLARABEL"
 
-        import os
-        import tempfile
+        monkeypatch.chdir(tmp_path)
+        # A non-optimal solver status raises RuntimeError, matching the
+        # MVO model, rather than returning None for the caller to unpack.
+        with pytest.raises(RuntimeError, match="optimal solution"):
+            rebalancing_model(
+                mu=simple_mu,
+                scenarios=simple_scenarios,
+                cvar_targets=cvar_target,
+                cvar_alpha=cvar_alpha,
+                cash=cash,
+                x_old=x_old,
+                trans_cost=trans_cost,
+                max_weight=max_weight,
+                solver=solver,
+                inaccurate=False,  # Don't accept inaccurate solutions
+                lower_bound=0,
+            )
 
-        # Change to temp directory so pickle file doesn't pollute working dir
-        original_dir = os.getcwd()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            os.chdir(tmpdir)
-            try:
-                # A non-optimal solver status raises RuntimeError, matching the
-                # MVO model, rather than returning None for the caller to unpack.
-                with pytest.raises(RuntimeError, match="optimal solution"):
-                    rebalancing_model(
-                        mu=simple_mu,
-                        scenarios=simple_scenarios,
-                        cvar_targets=cvar_target,
-                        cvar_alpha=cvar_alpha,
-                        cash=cash,
-                        x_old=x_old,
-                        trans_cost=trans_cost,
-                        max_weight=max_weight,
-                        solver=solver,
-                        inaccurate=False,  # Don't accept inaccurate solutions
-                        lower_bound=0,
-                    )
-            finally:
-                os.chdir(original_dir)
+        # A failed solve writes no file unless the caller opts in
+        assert list(tmp_path.iterdir()) == []
+
+    def test_rebalancing_failure_dumps_inputs_on_request(self, simple_mu, simple_scenarios, tmp_path):
+        """Test that a failed solve pickles its inputs to debug_dump when given."""
+        cvar_target, cvar_alpha, cash, solver = 0.001, 0.05, -1000, "CLARABEL"
+        x_old = pd.Series([100, 100, 100], index=simple_mu.index)
+        trans_cost, max_weight = 0.99, 0.01
+        dump = tmp_path / "inputs.pkl"
+
+        with pytest.raises(RuntimeError, match="optimal solution"):
+            rebalancing_model(
+                mu=simple_mu,
+                scenarios=simple_scenarios,
+                cvar_targets=cvar_target,
+                cvar_alpha=cvar_alpha,
+                cash=cash,
+                x_old=x_old,
+                trans_cost=trans_cost,
+                max_weight=max_weight,
+                solver=solver,
+                inaccurate=False,
+                lower_bound=0,
+                debug_dump=dump,
+            )
+
+        with open(dump, "rb") as file:
+            inputs = pickle.load(file)  # noqa: S301  # nosec B301  # file written by this test
+        assert {"mu", "scenarios", "cvar_targets", "x_old"} <= set(inputs)

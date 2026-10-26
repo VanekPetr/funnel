@@ -5,9 +5,12 @@ visualizing the clustering through dendrograms, and selecting representative ass
 each cluster based on performance criteria like Sharpe ratio.
 """
 
+import warnings
+
 import matplotlib.pyplot as plt
 import pandas as pd
 from loguru import logger
+from matplotlib.figure import Figure
 from scipy.cluster.hierarchy import complete, dendrogram, fcluster
 from scipy.spatial.distance import squareform
 
@@ -43,6 +46,51 @@ def fancy_dendrogram(*args, **kwargs) -> dict:
     return d_data
 
 
+def plot_dendrogram(data: pd.DataFrame) -> Figure:
+    """Draw the complete-linkage dendrogram used by :func:`cluster`.
+
+    The figure is returned rather than shown, so the caller decides whether to
+    display it (``plt.show()``), save it (``fig.savefig(...)``) or close it.
+
+    Args:
+        data: DataFrame containing financial data with assets as columns.
+
+    Returns:
+        Figure: The matplotlib figure holding the dendrogram.
+
+    Example:
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> import matplotlib.pyplot as plt
+        >>> rng = np.random.default_rng(0)
+        >>> data = pd.DataFrame(rng.normal(size=(60, 4)), columns=list("ABCD"))
+        >>> fig = plot_dendrogram(data)
+        >>> fig.axes[0].get_xlabel()
+        'Assets'
+        >>> plt.close(fig)
+    """
+    distance_corr = 1 - data.corr(method="spearman")
+    complete_corr = complete(squareform(distance_corr))
+
+    fig = plt.figure(figsize=(25, 10))
+    fancy_dendrogram(
+        complete_corr,
+        leaf_rotation=90.0,  # rotates the x-axis labels
+        leaf_font_size=8.0,
+        color_threshold=0.7,  # font size for the x-axis labels
+        labels=distance_corr.index,
+        # max_d=0.35,
+        annotate_above=10,
+    )
+    plt.title(
+        "Hierarchical Clustering Dendrogram: Complete Linkage, Spearman Correlation Distance Mearsure",
+        fontsize=16,
+    )
+    plt.xlabel("Assets", fontsize=16)
+    plt.ylabel("Distance", fontsize=16)
+    return fig
+
+
 def cluster(data: pd.DataFrame, n_clusters: int, dendrogram: bool = False) -> pd.DataFrame:
     """Performs hierarchical clustering on financial data.
 
@@ -53,7 +101,8 @@ def cluster(data: pd.DataFrame, n_clusters: int, dendrogram: bool = False) -> pd
     Args:
         data: DataFrame containing financial time series data, typically returns.
         n_clusters: Number of clusters to form.
-        dendrogram: If True, displays a dendrogram visualization of the clustering.
+        dendrogram: Deprecated. If True, also draws the dendrogram on a new pyplot figure,
+            which is left open but not shown. Use :func:`plot_dendrogram` instead.
 
     Returns:
         pd.DataFrame: DataFrame with the cluster assignments for each asset.
@@ -81,24 +130,12 @@ def cluster(data: pd.DataFrame, n_clusters: int, dendrogram: bool = False) -> pd
     complete_corr = complete(con_distance_corr)  # apply hierarchical clustering using the single distance measure
 
     if dendrogram:
-        # draw the dendrogram
-        plt.figure(figsize=(25, 10))
-        fancy_dendrogram(
-            complete_corr,
-            leaf_rotation=90.0,  # rotates the x-axis labels
-            leaf_font_size=8.0,
-            color_threshold=0.7,  # font size for the x-axis labels
-            labels=distance_corr.index,
-            # max_d=0.35,
-            annotate_above=10,
+        warnings.warn(
+            "cluster(dendrogram=True) is deprecated; use plot_dendrogram(data) to get the figure",
+            DeprecationWarning,
+            stacklevel=2,
         )
-        plt.title(
-            "Hierarchical Clustering Dendrogram: Complete Linkage, Spearman Correlation Distance Mearsure",
-            fontsize=16,
-        )
-        plt.xlabel("Assets", fontsize=16)
-        plt.ylabel("Distance", fontsize=16)
-        plt.show()
+        plot_dendrogram(data)
 
     # And now we want to save the clustering into a dataframe.
     # Create the dataframe

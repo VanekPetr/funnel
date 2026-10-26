@@ -1,5 +1,7 @@
 """Extended tests for MVO model module to improve coverage."""
 
+import pickle
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -239,7 +241,7 @@ class TestRebalancingModel:
             opt_port, _, _, _ = result
             assert isinstance(opt_port, pd.Series)
 
-    def test_rebalancing_infeasible_constraints(self, simple_inputs):
+    def test_rebalancing_infeasible_constraints(self, simple_inputs, tmp_path, monkeypatch):
         """Test rebalancing with infeasible constraints triggers failure path."""
         mu, covariance = simple_inputs
         # Create an impossible scenario: negative cash and existing position
@@ -251,29 +253,50 @@ class TestRebalancingModel:
         max_weight = 0.01  # Very restrictive max weight
         solver = "CLARABEL"
 
-        import os
-        import tempfile
+        monkeypatch.chdir(tmp_path)
+        # A non-optimal solver status raises RuntimeError (per the
+        # function's documented contract), rather than silently
+        # returning None for the caller to unpack.
+        with pytest.raises(RuntimeError, match="optimal solution"):
+            rebalancing_model(
+                mu=mu,
+                covariance=covariance,
+                vty_target=vty_target,
+                cash=cash,
+                x_old=x_old,
+                trans_cost=trans_cost,
+                max_weight=max_weight,
+                solver=solver,
+                inaccurate=False,  # Don't accept inaccurate solutions
+                lower_bound=0,
+            )
 
-        # Change to temp directory so pickle file doesn't pollute working dir
-        original_dir = os.getcwd()
-        with tempfile.TemporaryDirectory() as tmpdir:
-            os.chdir(tmpdir)
-            try:
-                # A non-optimal solver status raises RuntimeError (per the
-                # function's documented contract), rather than silently
-                # returning None for the caller to unpack.
-                with pytest.raises(RuntimeError, match="optimal solution"):
-                    rebalancing_model(
-                        mu=mu,
-                        covariance=covariance,
-                        vty_target=vty_target,
-                        cash=cash,
-                        x_old=x_old,
-                        trans_cost=trans_cost,
-                        max_weight=max_weight,
-                        solver=solver,
-                        inaccurate=False,  # Don't accept inaccurate solutions
-                        lower_bound=0,
-                    )
-            finally:
-                os.chdir(original_dir)
+        # A failed solve writes no file unless the caller opts in
+        assert list(tmp_path.iterdir()) == []
+
+    def test_rebalancing_failure_dumps_inputs_on_request(self, simple_inputs, tmp_path):
+        """Test that a failed solve pickles its inputs to debug_dump when given."""
+        mu, covariance = simple_inputs
+        vty_target, cash, solver = 0.001, -1000, "CLARABEL"
+        x_old = pd.Series([100, 100, 100], index=mu.index)
+        trans_cost, max_weight = 0.99, 0.01
+        dump = tmp_path / "inputs.pkl"
+
+        with pytest.raises(RuntimeError, match="optimal solution"):
+            rebalancing_model(
+                mu=mu,
+                covariance=covariance,
+                vty_target=vty_target,
+                cash=cash,
+                x_old=x_old,
+                trans_cost=trans_cost,
+                max_weight=max_weight,
+                solver=solver,
+                inaccurate=False,
+                lower_bound=0,
+                debug_dump=dump,
+            )
+
+        with open(dump, "rb") as file:
+            inputs = pickle.load(file)  # noqa: S301  # nosec B301  # file written by this test
+        assert {"mu", "covariance", "vty_target", "x_old"} <= set(inputs)

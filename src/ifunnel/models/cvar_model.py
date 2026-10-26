@@ -7,6 +7,7 @@ generate optimal portfolio allocations that satisfy risk constraints.
 """
 
 import pickle  # nosec B403
+from pathlib import Path
 
 import cvxpy as cp
 import numpy as np
@@ -30,6 +31,7 @@ def rebalancing_model(
     solver: str,
     inaccurate: bool,
     lower_bound: int,
+    debug_dump: str | Path | None = None,
 ) -> tuple[pd.Series, float, float, float]:
     """Find the optimal portfolio that maximizes return subject to CVaR constraints.
 
@@ -50,6 +52,9 @@ def rebalancing_model(
         solver: The name of the solver to use, as returned by cvxpy.installed_solvers()
         inaccurate: Whether to also accept solutions with status "optimal_inaccurate"
         lower_bound: Minimum weight given to each selected asset
+        debug_dump: Optional file to pickle the solver inputs to when the solve fails,
+            so the failing problem can be investigated separately (e.g. in a notebook).
+            Nothing is written when it is omitted.
 
     Returns:
         Tuple[pd.Series, float, float, float]: The optimisation result:
@@ -160,7 +165,7 @@ def rebalancing_model(
         return opt_port, cvar_result_p, port_val, cash
 
     else:
-        # Save inputs, so that failing problem can be investigated separately e. g. in a notebook
+        # Optionally save inputs, so that failing problem can be investigated separately e. g. in a notebook
         inputs = {
             "mu": mu,
             "scenarios": scenarios,
@@ -171,8 +176,10 @@ def rebalancing_model(
             "trans_cost": trans_cost,
             "max_weight": max_weight,
         }
-        with open("rebalance_inputs.pkl", "wb") as file:
-            pickle.dump(inputs, file)
+        if debug_dump is not None:
+            with open(debug_dump, "wb") as file:
+                pickle.dump(inputs, file)
+            logger.info(f"Saved the failing solver inputs to {debug_dump}")
 
         # Raise an error if the model is not optimal
         logger.error(f"❌ Solver does not find optimal solution. Status code is {model.status}")
@@ -193,6 +200,7 @@ def cvar_model(
     solver: str,
     inaccurate: bool = True,
     lower_bound: int = 0,
+    debug_dump: str | Path | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Run the CVaR optimization model over multiple investment periods.
 
@@ -211,6 +219,9 @@ def cvar_model(
         solver: The name of the solver to use for optimization
         inaccurate: Whether to accept solutions with status "optimal_inaccurate"
         lower_bound: Minimum weight given to each selected asset
+        debug_dump: Optional file to pickle the solver inputs to when a period's solve fails,
+            so the failing problem can be investigated separately (e.g. in a notebook).
+            Nothing is written when it is omitted.
 
     Returns:
         Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: A tuple containing:
@@ -257,6 +268,7 @@ def cvar_model(
             solver=solver,
             inaccurate=inaccurate,
             lower_bound=lower_bound,
+            debug_dump=debug_dump,
         )
 
         # save the result

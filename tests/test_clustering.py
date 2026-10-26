@@ -1,11 +1,15 @@
 """Testing the clustering module."""
 
+from unittest.mock import patch
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pytest
+from matplotlib.figure import Figure
 from scipy.cluster.hierarchy import linkage
 
-from ifunnel.models.clustering import cluster, fancy_dendrogram, pick_cluster
+from ifunnel.models.clustering import cluster, fancy_dendrogram, pick_cluster, plot_dendrogram
 
 
 def test_fancy_dendrogram_basic():
@@ -59,14 +63,27 @@ def test_cluster_basic():
 
 
 def test_cluster_with_dendrogram():
-    """Test clustering with dendrogram visualization."""
+    """Test that the deprecated dendrogram flag still draws, but warns and never shows."""
     np.random.seed(42)
     data = pd.DataFrame(np.random.randn(50, 4), columns=["A", "B", "C", "D"])
-    plt.figure()
-    result = cluster(data, n_clusters=2, dendrogram=True)
+    with patch.object(plt, "show") as mock_show, pytest.warns(DeprecationWarning, match="plot_dendrogram"):
+        result = cluster(data, n_clusters=2, dendrogram=True)
+    mock_show.assert_not_called()
     assert isinstance(result, pd.DataFrame)
     assert len(result) == 4
-    plt.close()
+    plt.close("all")
+
+
+def test_plot_dendrogram_returns_figure_without_showing():
+    """Test that plot_dendrogram returns the figure instead of showing it."""
+    np.random.seed(42)
+    data = pd.DataFrame(np.random.randn(50, 4), columns=["A", "B", "C", "D"])
+    with patch.object(plt, "show") as mock_show:
+        fig = plot_dendrogram(data)
+    mock_show.assert_not_called()
+    assert isinstance(fig, Figure)
+    assert fig.axes[0].get_xlabel() == "Assets"
+    plt.close(fig)
 
 
 def test_pick_cluster_basic():
