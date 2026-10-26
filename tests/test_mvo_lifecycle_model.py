@@ -1,5 +1,7 @@
 """Tests for lifecycle MVO model module."""
 
+import warnings
+
 import numpy as np
 import pandas as pd
 
@@ -121,6 +123,28 @@ def test_calculate_analysis_metrics_values():
     # Check that upper values > lower values
     assert metrics_df["Upper Decile Average"].iloc[0] > metrics_df["Lower Decile Average"].iloc[0]
     assert metrics_df["Upper Quartile Average"].iloc[0] > metrics_df["Lower Quartile Average"].iloc[0]
+
+
+def test_calculate_analysis_metrics_tail_averages():
+    """Test that decile and quartile averages cover the bottom/top 10% and 25%."""
+    metrics_df = calculate_analysis_metrics(pd.Series([float(v) for v in range(1, 101)]))
+
+    assert metrics_df["Lower Decile Average"].iloc[0] == 5.5
+    assert metrics_df["Upper Decile Average"].iloc[0] == 95.5
+    assert metrics_df["Lower Quartile Average"].iloc[0] == 13.0
+    assert metrics_df["Upper Quartile Average"].iloc[0] == 88.0
+
+
+def test_calculate_analysis_metrics_small_sample_without_warning():
+    """Test that fewer values than a decile still give finite tail averages, without warnings."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        metrics_df = calculate_analysis_metrics(pd.Series([100.0, 110.0, 90.0]))
+
+    assert metrics_df["Lower Decile Average"].iloc[0] == 90.0
+    assert metrics_df["Upper Decile Average"].iloc[0] == 110.0
+    assert metrics_df["Lower Quartile Average"].iloc[0] == 90.0
+    assert metrics_df["Upper Quartile Average"].iloc[0] == 110.0
 
 
 def test_calculate_analysis_metrics_uniform_values():
