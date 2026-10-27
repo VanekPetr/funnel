@@ -60,17 +60,15 @@ def calculate_analysis_metrics(terminal_values: pd.Series) -> pd.DataFrame:
     max_terminal_value = np.max(terminal_values)
     min_terminal_value = np.min(terminal_values)
 
-    # Sorting for decile and quartile calculations
+    # Sorting for decile and quartile calculations; each tail holds at least one value
     sorted_terminal_values = sorted(terminal_values)
-    lower_decile_count = len(sorted_terminal_values) // 10
-    upper_decile_count = len(sorted_terminal_values) - lower_decile_count
-    lower_quartile_count = len(sorted_terminal_values) // 4
-    upper_quartile_count = len(sorted_terminal_values) - lower_quartile_count
+    decile_count = max(1, len(sorted_terminal_values) // 10)
+    quartile_count = max(1, len(sorted_terminal_values) // 4)
 
-    lower_decile_avg = np.mean(sorted_terminal_values[:lower_decile_count])
-    upper_decile_avg = np.mean(sorted_terminal_values[-upper_decile_count:])
-    lower_quartile_avg = np.mean(sorted_terminal_values[:lower_quartile_count])
-    upper_quartile_avg = np.mean(sorted_terminal_values[-upper_quartile_count:])
+    lower_decile_avg = np.mean(sorted_terminal_values[:decile_count])
+    upper_decile_avg = np.mean(sorted_terminal_values[-decile_count:])
+    lower_quartile_avg = np.mean(sorted_terminal_values[:quartile_count])
+    upper_quartile_avg = np.mean(sorted_terminal_values[-quartile_count:])
 
     # Creating a DataFrame to store the metrics
     metrics_df = pd.DataFrame(
