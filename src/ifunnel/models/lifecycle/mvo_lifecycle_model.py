@@ -1,5 +1,7 @@
 """Model functions for the lifecycle of a portfolio."""
 
+from datetime import date
+
 import cvxpy as cp
 import numpy as np
 import pandas as pd
@@ -9,6 +11,18 @@ from loguru import logger
 
 from ..mvo_model import cholesky_psd
 from ..solver_failure import raise_solver_failure
+
+
+def resolve_start_year(start_year: int | None) -> int:
+    """Return ``start_year``, or the current calendar year when it is None.
+
+    Example:
+        >>> resolve_start_year(2030)
+        2030
+        >>> resolve_start_year(None) == date.today().year
+        True
+    """
+    return date.today().year if start_year is None else start_year
 
 
 def calculate_risk_metrics(
@@ -179,6 +193,7 @@ def get_port_allocations(
     targets: pd.DataFrame,
     max_weight: float,
     solver: str,
+    start_year: int | None = None,
 ) -> pd.DataFrame:
     """Calculate optimal portfolio allocations for the glide paths.
 
@@ -188,6 +203,7 @@ def get_port_allocations(
     - targets: Target volatilities from the risk budget glide paths
     - max_weight: Maximum weight for any asset
     - solver: Optimization solver to use
+    - start_year: Label of the first year; defaults to the current year
 
     Returns:
     - allocation_df: DataFrame showing the optimal asset allocations for each year.
@@ -197,7 +213,8 @@ def get_port_allocations(
     """
     # Initial setup
     num_years = len(targets)
-    years = [str(i + 2023) for i in range(num_years)]
+    first_year = resolve_start_year(start_year)
+    years = [str(first_year + i) for i in range(num_years)]
     assets = mu_lst.index
 
     # Initialize DataFrames
@@ -225,6 +242,7 @@ def portfolio_rebalancing(
     transaction_cost: float,
     scenarios: pd.DataFrame,
     interest_rate: float,
+    start_year: int | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Simulate portfolio rebalancing over multiple years.
 
@@ -238,6 +256,7 @@ def portfolio_rebalancing(
     - transaction_cost: Transaction cost rate applied to rebalancing and withdrawals.
     - scenarios: DataFrame containing asset return scenarios for each year.
     - interest_rate: Interest rate applied to borrowed amounts in case of default.
+    - start_year: Label of the first year; defaults to the current year.
 
     Returns:
     - ptf_performance: DataFrame for portfolio performance for each year.
@@ -245,7 +264,8 @@ def portfolio_rebalancing(
     """
     # Initialize the number of years and assets from the targets DataFrame
     n_years, _n_assets = targets.shape
-    years = [i + 2023 for i in range(n_years)]
+    first_year = resolve_start_year(start_year)
+    years = [first_year + i for i in range(n_years)]
     assets = targets.columns
 
     # Prepare DataFrame to store portfolio performance
@@ -303,7 +323,7 @@ def portfolio_rebalancing(
         # Check if withdrawals exceed the portfolio value, leading to default
         if withdrawal_lst[year] >= portfolio_value_ultimo_bw * (1 + transaction_cost):
             withdrawal_amount = portfolio_value_ultimo_bw * (1 - transaction_cost)
-            default_year = year + 2023
+            default_year = first_year + year
             borrowed_amount = withdrawal_lst[year] - withdrawal_amount
             interest_for_the_year = borrowed_amount * interest_rate
             borrowed_amount += interest_for_the_year
@@ -343,6 +363,7 @@ def riskadjust_model_scen(
     trans_cost: float,
     withdrawal_lst: list[float],
     interest_rate: float,
+    start_year: int | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Simulate portfolio performance across different scenarios.
 
@@ -356,6 +377,7 @@ def riskadjust_model_scen(
     - trans_cost: Transaction costs as a fraction of the trade amount.
     - withdrawal_lst: List of annual withdrawal amounts.
     - interest_rate: Interest rate applied to borrowed amounts in case of default.
+    - start_year: Year of the first period, used for the "Default Year" column; defaults to the current year.
 
     Returns:
     - portfolio_df: DataFrame summarizing the performance metrics for each scenario.
@@ -402,6 +424,7 @@ def riskadjust_model_scen(
             transaction_cost=trans_cost,
             scenarios=scenarios_df,
             interest_rate=interest_rate,
+            start_year=start_year,
         )
 
         # Store the allocation results for this scenario

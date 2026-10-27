@@ -24,6 +24,7 @@ from .data_analyser import final_stats, mean_an_returns
 from .lifecycle.glide_path_creator import generate_risk_profiles
 from .lifecycle.mvo_lifecycle_model import (
     get_port_allocations,
+    resolve_start_year,
     riskadjust_model_scen,
 )
 from .mst import minimum_spanning_tree
@@ -545,6 +546,7 @@ class TradeBot:
         initial_budget: int,
         rng_seed: int = 0,
         test_split: float = False,
+        start_year: int | None = None,
     ) -> tuple[dict, pd.DataFrame, go.Figure, go.Figure, dict, dict, go.Figure]:
         """Simulate a lifecycle investment with withdrawals along several glide paths.
 
@@ -557,7 +559,8 @@ class TradeBot:
             subset_of_assets: Tickers the portfolio may invest in.
             scenarios_type: ``"MonteCarlo"`` or ``"Bootstrap"``.
             n_simulations: Number of return scenarios.
-            end_year: Final year of the horizon; the horizon starts in 2023 (see #284).
+            end_year: Year the horizon ends (exclusive): the analysis covers the
+                ``end_year - start_year`` years ``start_year, ..., end_year - 1``.
             withdrawals: Withdrawal in the first year, increased by 4% per year.
             initial_risk_appetite: Portfolio volatility at the start of the glide paths.
             initial_budget: Starting wealth.
@@ -565,6 +568,7 @@ class TradeBot:
             test_split: If non-zero, the fraction of the history used to generate
                 scenarios; the remainder estimates the moments behind the targets.
                 If zero, the whole history is used for both.
+            start_year: First year of the horizon; defaults to the current year.
 
         Returns:
             tuple: ``(terminal_wealth, summary, fig_performance, fig_glidepaths,
@@ -575,10 +579,14 @@ class TradeBot:
                 figures (``fig_compositions`` is a dict of figures).
 
         Raises:
-            ValueError: If ``scenarios_type`` is not ``"MonteCarlo"`` or ``"Bootstrap"``.
+            ValueError: If ``scenarios_type`` is not ``"MonteCarlo"`` or ``"Bootstrap"``,
+                or ``end_year`` is not after ``start_year``.
         """
         # ------------------------------- INITIALIZE FUNCTION -------------------------------
-        n_periods = end_year - 2023
+        start_year = resolve_start_year(start_year)
+        n_periods = end_year - start_year
+        if n_periods < 1:
+            raise ValueError(f"end_year ({end_year}) must be after start_year ({start_year})")  # noqa: TRY003
         withdrawal_lst = [withdrawals * (1 + 0.04) ** i for i in range(n_periods)]
 
         # ------------------------------- PARAMETER INITIALIZATION -------------------------------
@@ -635,6 +643,7 @@ class TradeBot:
                 targets=glide_paths_df[r],
                 max_weight=1 / 4,
                 solver="CLARABEL",
+                start_year=start_year,
             )
             allocation_targets[f"{r}"] = targets
 
@@ -654,6 +663,7 @@ class TradeBot:
                 trans_cost=0.002,
                 withdrawal_lst=withdrawal_lst,
                 interest_rate=0.04,
+                start_year=start_year,
             )
 
             # Add the analysis_metrics DataFrame as a new column in the storage DataFrame

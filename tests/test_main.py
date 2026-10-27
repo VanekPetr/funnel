@@ -1,5 +1,6 @@
 """Comprehensive tests for the main module to achieve 100% coverage."""
 
+from datetime import date
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -522,6 +523,7 @@ class TestLifecycleScenarioAnalysis:
             scenarios_type="MonteCarlo",
             n_simulations=100,  # More simulations for variance in terminal wealth
             end_year=2026,
+            start_year=2023,
             withdrawals=100,  # Smaller withdrawals relative to budget
             initial_risk_appetite=0.15,
             initial_budget=10000,
@@ -551,6 +553,7 @@ class TestLifecycleScenarioAnalysis:
             scenarios_type="Bootstrap",
             n_simulations=100,  # More simulations for variance
             end_year=2026,
+            start_year=2023,
             withdrawals=100,
             initial_risk_appetite=0.15,
             initial_budget=10000,
@@ -569,6 +572,7 @@ class TestLifecycleScenarioAnalysis:
             scenarios_type="MonteCarlo",
             n_simulations=20,
             end_year=2026,
+            start_year=2023,
             withdrawals=1000,
             initial_risk_appetite=0.15,
             initial_budget=10000,
@@ -580,6 +584,56 @@ class TestLifecycleScenarioAnalysis:
 
         assert isinstance(terminal_wealth_dict, dict)
 
+    def test_lifecycle_start_year_sets_periods_and_labels(self, trade_bot):
+        """Test that start_year sets the number of periods and the year labels."""
+        result = trade_bot.lifecycle_scenario_analysis(
+            subset_of_assets=["ISIN1", "ISIN2", "ISIN3"],
+            scenarios_type="MonteCarlo",
+            n_simulations=20,
+            end_year=2033,
+            start_year=2030,
+            withdrawals=100,
+            initial_risk_appetite=0.15,
+            initial_budget=10000,
+            rng_seed=7,
+        )
+
+        allocation_targets = result[4]
+        for allocation_df in allocation_targets.values():
+            assert list(allocation_df.index) == ["2030", "2031", "2032"]
+
+    def test_lifecycle_start_year_defaults_to_current_year(self, trade_bot):
+        """Test that the horizon starts in the current year when start_year is omitted."""
+        this_year = date.today().year
+        result = trade_bot.lifecycle_scenario_analysis(
+            subset_of_assets=["ISIN1", "ISIN2", "ISIN3"],
+            scenarios_type="MonteCarlo",
+            n_simulations=20,
+            end_year=this_year + 2,
+            withdrawals=100,
+            initial_risk_appetite=0.15,
+            initial_budget=10000,
+            rng_seed=7,
+        )
+
+        allocation_targets = result[4]
+        for allocation_df in allocation_targets.values():
+            assert list(allocation_df.index) == [str(this_year), str(this_year + 1)]
+
+    def test_lifecycle_end_year_not_after_start_year(self, trade_bot):
+        """Test that an empty horizon raises instead of simulating zero years."""
+        with pytest.raises(ValueError, match=r"end_year \(2030\) must be after start_year \(2030\)"):
+            trade_bot.lifecycle_scenario_analysis(
+                subset_of_assets=["ISIN1", "ISIN2", "ISIN3"],
+                scenarios_type="MonteCarlo",
+                n_simulations=20,
+                end_year=2030,
+                start_year=2030,
+                withdrawals=100,
+                initial_risk_appetite=0.15,
+                initial_budget=10000,
+            )
+
     def test_lifecycle_invalid_scenario_type(self, trade_bot):
         """Test lifecycle_scenario_analysis with invalid scenario type."""
         with pytest.raises(ValueError, match="scenario method"):
@@ -588,6 +642,7 @@ class TestLifecycleScenarioAnalysis:
                 scenarios_type="InvalidType",
                 n_simulations=20,
                 end_year=2026,
+                start_year=2023,
                 withdrawals=1000,
                 initial_risk_appetite=0.15,
                 initial_budget=10000,
@@ -605,6 +660,7 @@ class TestLifecycleScenarioAnalysis:
                 scenarios_type="MonteCarlo",
                 n_simulations=50,
                 end_year=2026,
+                start_year=2023,
                 withdrawals=100,
                 initial_risk_appetite=0.15,
                 initial_budget=10000,
