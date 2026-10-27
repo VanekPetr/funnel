@@ -483,6 +483,33 @@ class TestBacktest:
         optimal_stat, _benchmark_stat, _fig_performance, _fig_composition = result
         assert optimal_stat is not None
 
+    @pytest.mark.parametrize(
+        ("overrides", "message"),
+        [
+            ({"model": "Markowitz"}, r"Unknown model 'Markowitz'.*'Markowitz model', 'CVaR model'"),
+            (
+                {"scenarios_type": "Monte Carlo"},
+                r"Unknown scenarios_type 'Monte Carlo'.*'MonteCarlo', 'Bootstrapping'",
+            ),
+        ],
+    )
+    def test_backtest_rejects_unknown_choice(self, trade_bot, overrides, message):
+        """Test that a misspelled model or scenarios_type raises instead of silently falling back."""
+        kwargs = {
+            "start_train_date": str(trade_bot.weekly_returns.index[50].date()),
+            "start_test_date": str(trade_bot.weekly_returns.index[100].date()),
+            "end_test_date": str(trade_bot.weekly_returns.index[140].date()),
+            "subset_of_assets": ["ISIN1", "ISIN2", "ISIN3"],
+            "benchmarks": ["Benchmark Fund"],
+            "scenarios_type": "MonteCarlo",
+            "n_simulations": 50,
+            "model": "Markowitz model",
+        }
+        kwargs.update(overrides)
+
+        with pytest.raises(ValueError, match=message):
+            trade_bot.backtest(**kwargs)
+
 
 class TestLifecycleScenarioAnalysis:
     """Tests for the lifecycle_scenario_analysis method."""

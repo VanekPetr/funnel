@@ -31,6 +31,10 @@ from .mvo_model import mvo_model
 from .mvo_targets import get_mvo_targets
 from .scenario_generation import MomentGenerator, ScenarioGenerator
 
+# Accepted values of TradeBot.backtest's string switches
+_BACKTEST_MODELS = ("Markowitz model", "CVaR model")
+_BACKTEST_SCENARIOS = ("MonteCarlo", "Bootstrapping")
+
 
 @lru_cache(maxsize=1)  # Cache the parsed file; each bot gets its own copy
 def _load_weekly_returns(file: str | Path) -> pd.DataFrame:
@@ -346,6 +350,13 @@ class TradeBot:
         lower_bound: int = 0,
     ) -> tuple[pd.DataFrame, pd.DataFrame, go.Figure, go.Figure]:
         """METHOD TO COMPUTE THE BACKTEST."""
+        if model not in _BACKTEST_MODELS:
+            raise ValueError(f"Unknown model {model!r}; choose one of {_BACKTEST_MODELS}")  # noqa: TRY003
+        if scenarios_type not in _BACKTEST_SCENARIOS:
+            raise ValueError(  # noqa: TRY003
+                f"Unknown scenarios_type {scenarios_type!r}; choose one of {_BACKTEST_SCENARIOS}"
+            )
+
         # Find Benchmarks' ISIN codes
         benchmark_isin = [self.tickers[list(self.names).index(name)] for name in benchmarks]
 
