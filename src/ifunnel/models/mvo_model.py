@@ -32,7 +32,7 @@ def cholesky_psd(m: np.ndarray | pd.DataFrame) -> np.ndarray:
         numpy.ndarray: The Cholesky factor C such that C.T @ C approximates the input matrix.
 
     Raises:
-        AssertionError: If the D matrix from LDL decomposition is not diagonal.
+        ValueError: If the D matrix from LDL decomposition is not diagonal.
 
     Example:
         >>> import numpy as np
@@ -50,7 +50,8 @@ def cholesky_psd(m: np.ndarray | pd.DataFrame) -> np.ndarray:
     if min_eig < 0:
         d -= 5 * min_eig * np.eye(*d.shape)
 
-    sqrtd = sp.linalg.sqrtm(d)
+    # d is diagonal, so its square root is element-wise; clip guards against round-off below zero
+    sqrtd = np.diag(np.sqrt(np.clip(np.diag(d), 0, None)))
     c = (lu @ sqrtd).T
     return c
 

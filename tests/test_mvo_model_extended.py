@@ -1,6 +1,7 @@
 """Extended tests for MVO model module to improve coverage."""
 
 import pickle
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -33,6 +34,23 @@ class TestCholeskyPsd:
 
         # Should not raise an error
         assert c.shape[0] == c.shape[1]
+
+    def test_singular_matrix_without_warning(self):
+        """Test that a singular PSD matrix is factored exactly and without a LinAlgWarning."""
+        m = np.array([[1.0, 0.0], [0.0, 0.0]])
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            c = cholesky_psd(m)
+
+        np.testing.assert_array_almost_equal(c.T @ c, m)
+
+    def test_non_diagonal_ldl_block_raises(self):
+        """Test that an indefinite matrix whose LDL D has a 2x2 pivot block is rejected."""
+        m = np.array([[0.0, 1.0], [1.0, 0.0]])
+
+        with pytest.raises(ValueError, match="not diagonal"):
+            cholesky_psd(m)
 
     def test_diagonal_matrix(self):
         """Test with a diagonal matrix."""
