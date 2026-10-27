@@ -474,7 +474,7 @@ class TestBacktest:
             end_test_date=test_end,
             subset_of_assets=["ISIN1", "ISIN2", "ISIN3"],
             benchmarks=["Benchmark Fund"],
-            scenarios_type="Bootstrapping",
+            scenarios_type="Bootstrap",
             n_simulations=50,
             model="CVaR model",
             solver="CLARABEL",
@@ -490,7 +490,7 @@ class TestBacktest:
             ({"model": "Markowitz"}, r"Unknown model 'Markowitz'.*'Markowitz model', 'CVaR model'"),
             (
                 {"scenarios_type": "Monte Carlo"},
-                r"Unknown scenarios_type 'Monte Carlo'.*'MonteCarlo', 'Bootstrapping'",
+                r"Unknown scenarios_type 'Monte Carlo'.*'MonteCarlo', 'Bootstrap'",
             ),
         ],
     )
@@ -510,6 +510,21 @@ class TestBacktest:
 
         with pytest.raises(ValueError, match=message):
             trade_bot.backtest(**kwargs)
+
+    def test_backtest_bootstrapping_alias_warns(self, trade_bot):
+        """Test that the deprecated "Bootstrapping" spelling still runs, with a DeprecationWarning."""
+        with pytest.warns(DeprecationWarning, match="'Bootstrapping' is deprecated; use 'Bootstrap'"):
+            optimal_stat, *_ = trade_bot.backtest(
+                start_train_date=str(trade_bot.weekly_returns.index[50].date()),
+                start_test_date=str(trade_bot.weekly_returns.index[100].date()),
+                end_test_date=str(trade_bot.weekly_returns.index[140].date()),
+                subset_of_assets=["ISIN1", "ISIN2", "ISIN3"],
+                benchmarks=["Benchmark Fund"],
+                scenarios_type="Bootstrapping",
+                n_simulations=50,
+                model="Markowitz model",
+            )
+        assert optimal_stat is not None
 
 
 class TestLifecycleScenarioAnalysis:
@@ -634,9 +649,31 @@ class TestLifecycleScenarioAnalysis:
                 initial_budget=10000,
             )
 
+    def test_lifecycle_bootstrapping_alias_warns(self, trade_bot):
+        """Test that the deprecated "Bootstrapping" spelling warns and runs as "Bootstrap"."""
+        kwargs = {
+            "subset_of_assets": ["ISIN1", "ISIN2", "ISIN3"],
+            "n_simulations": 20,
+            "end_year": 2026,
+            "start_year": 2023,
+            "withdrawals": 100,
+            "initial_risk_appetite": 0.15,
+            "initial_budget": 10000,
+            "rng_seed": 456,
+        }
+        with pytest.warns(DeprecationWarning, match="'Bootstrapping' is deprecated; use 'Bootstrap'"):
+            alias_wealth, *_ = trade_bot.lifecycle_scenario_analysis(scenarios_type="Bootstrapping", **kwargs)
+        canonical_wealth, *_ = trade_bot.lifecycle_scenario_analysis(scenarios_type="Bootstrap", **kwargs)
+
+        # Same glide paths and scenario shapes; values are not compared exactly because
+        # repeated solver runs differ in the last digits
+        assert alias_wealth.keys() == canonical_wealth.keys()
+        for path in canonical_wealth:
+            assert np.shape(alias_wealth[path]) == np.shape(canonical_wealth[path])
+
     def test_lifecycle_invalid_scenario_type(self, trade_bot):
         """Test lifecycle_scenario_analysis with invalid scenario type."""
-        with pytest.raises(ValueError, match="scenario method"):
+        with pytest.raises(ValueError, match=r"Unknown scenarios_type 'InvalidType'.*'MonteCarlo', 'Bootstrap'"):
             trade_bot.lifecycle_scenario_analysis(
                 subset_of_assets=["ISIN1", "ISIN2", "ISIN3"],
                 scenarios_type="InvalidType",

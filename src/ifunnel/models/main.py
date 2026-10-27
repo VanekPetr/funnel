@@ -34,7 +34,37 @@ from .scenario_generation import MomentGenerator, ScenarioGenerator
 
 # Accepted values of TradeBot.backtest's string switches
 _BACKTEST_MODELS = ("Markowitz model", "CVaR model")
-_BACKTEST_SCENARIOS = ("MonteCarlo", "Bootstrapping")
+# Accepted scenarios_type values of TradeBot.backtest and lifecycle_scenario_analysis,
+# and the deprecated spellings still accepted with a warning
+_SCENARIO_TYPES = ("MonteCarlo", "Bootstrap")
+_DEPRECATED_SCENARIO_TYPES = {"Bootstrapping": "Bootstrap"}
+
+
+def _resolve_scenarios_type(scenarios_type: str) -> str:
+    """Return the canonical spelling of ``scenarios_type``.
+
+    A deprecated spelling is translated with a ``DeprecationWarning``; anything else
+    that is not one of ``_SCENARIO_TYPES`` raises ``ValueError``.
+
+    Example:
+        >>> _resolve_scenarios_type("MonteCarlo")
+        'MonteCarlo'
+        >>> _resolve_scenarios_type("Monte Carlo")
+        Traceback (most recent call last):
+        ...
+        ValueError: Unknown scenarios_type 'Monte Carlo'; choose one of ('MonteCarlo', 'Bootstrap')
+    """
+    if scenarios_type in _DEPRECATED_SCENARIO_TYPES:
+        canonical = _DEPRECATED_SCENARIO_TYPES[scenarios_type]
+        warnings.warn(
+            f"scenarios_type={scenarios_type!r} is deprecated; use {canonical!r} instead",
+            DeprecationWarning,
+            stacklevel=3,  # point at the caller of the TradeBot method
+        )
+        return canonical
+    if scenarios_type not in _SCENARIO_TYPES:
+        raise ValueError(f"Unknown scenarios_type {scenarios_type!r}; choose one of {_SCENARIO_TYPES}")  # noqa: TRY003
+    return scenarios_type
 
 
 @lru_cache(maxsize=1)  # Cache the parsed file; each bot gets its own copy
@@ -408,7 +438,8 @@ class TradeBot:
             subset_of_assets: Tickers the portfolio may invest in, e.g. the output of
                 :meth:`mst` or :meth:`clustering`.
             benchmarks: Asset *names* (not tickers) that make up the benchmark.
-            scenarios_type: ``"MonteCarlo"`` or ``"Bootstrapping"``.
+            scenarios_type: ``"MonteCarlo"`` or ``"Bootstrap"`` (``"Bootstrapping"`` is a
+                deprecated alias).
             n_simulations: Number of scenarios generated per period.
             model: ``"Markowitz model"`` (volatility target) or ``"CVaR model"``.
             solver: CVXPY solver name, as listed by ``cvxpy.installed_solvers()``.
@@ -425,10 +456,7 @@ class TradeBot:
         """
         if model not in _BACKTEST_MODELS:
             raise ValueError(f"Unknown model {model!r}; choose one of {_BACKTEST_MODELS}")  # noqa: TRY003
-        if scenarios_type not in _BACKTEST_SCENARIOS:
-            raise ValueError(  # noqa: TRY003
-                f"Unknown scenarios_type {scenarios_type!r}; choose one of {_BACKTEST_SCENARIOS}"
-            )
+        scenarios_type = _resolve_scenarios_type(scenarios_type)
 
         # Find Benchmarks' ISIN codes
         benchmark_isin = [self.tickers[list(self.names).index(name)] for name in benchmarks]
@@ -557,7 +585,8 @@ class TradeBot:
 
         Args:
             subset_of_assets: Tickers the portfolio may invest in.
-            scenarios_type: ``"MonteCarlo"`` or ``"Bootstrap"``.
+            scenarios_type: ``"MonteCarlo"`` or ``"Bootstrap"`` (``"Bootstrapping"`` is a
+                deprecated alias).
             n_simulations: Number of return scenarios.
             end_year: Year the horizon ends (exclusive): the analysis covers the
                 ``end_year - start_year`` years ``start_year, ..., end_year - 1``.
@@ -579,10 +608,11 @@ class TradeBot:
                 figures (``fig_compositions`` is a dict of figures).
 
         Raises:
-            ValueError: If ``scenarios_type`` is not ``"MonteCarlo"`` or ``"Bootstrap"``,
+            ValueError: If ``scenarios_type`` is not one of the values above,
                 or ``end_year`` is not after ``start_year``.
         """
         # ------------------------------- INITIALIZE FUNCTION -------------------------------
+        scenarios_type = _resolve_scenarios_type(scenarios_type)
         start_year = resolve_start_year(start_year)
         n_periods = end_year - start_year
         if n_periods < 1:
@@ -617,17 +647,11 @@ class TradeBot:
                 n_years=n_periods,
             )
 
-        elif scenarios_type == "Bootstrap":
+        else:  # "Bootstrap"
             scenarios = sg.bootstrap_simulation_annual_from_weekly(
                 historical_weekly_returns=self.weekly_returns[subset_of_assets],
                 n_simulations=n_simulations,
                 n_years=n_periods,
-            )
-
-        else:
-            raise ValueError(  # noqa: TRY003
-                "It appears that a scenario method other than MonteCarlo or Bootstrap has been chosen. "
-                "Please check for spelling mistakes."
             )
 
         # ------------------------------- Allocation Target Generation -------------------------------
@@ -747,7 +771,7 @@ if __name__ == "__main__":  # pragma: no cover
         end_test_date="2019-09-01",
         subset_of_assets=mst_subset_of_assets,
         benchmarks=["BankInvest Danske Aktier W"],
-        scenarios_type="Bootstrapping",
+        scenarios_type="Bootstrap",
         n_simulations=500,
         model="Markowitz model",
         lower_bound=0,
