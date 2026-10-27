@@ -8,6 +8,7 @@ from cvxpy import sum as cp_sum
 from loguru import logger
 
 from ..mvo_model import cholesky_psd
+from ..solver_failure import raise_solver_failure
 
 
 def calculate_risk_metrics(
@@ -167,11 +168,9 @@ def lifecycle_rebalance_model(
         return port_nom, port_val
 
     else:
-        # Raise an error if the model is not optimal
-        logger.error(
-            f"The model is {model.status}. Look into the constraints. It might be an issue of too low risk targets."
+        raise_solver_failure(
+            str(model.status), hint="Look into the constraints. It might be an issue of too low risk targets."
         )
-        raise RuntimeError(f"Solver did not find an optimal solution (status: {model.status})")  # noqa: TRY003
 
 
 def get_port_allocations(

@@ -6,7 +6,6 @@ rebalancing portfolios with transaction costs, and running the MVO model over
 multiple periods to generate optimal portfolio allocations.
 """
 
-import pickle  # nosec B403
 from pathlib import Path
 
 import cvxpy as cp
@@ -16,6 +15,8 @@ import scipy as sp
 from cvxpy import norm as cp_norm
 from cvxpy import sum as cp_sum
 from loguru import logger
+
+from .solver_failure import raise_solver_failure
 
 
 def cholesky_psd(m: np.ndarray | pd.DataFrame) -> np.ndarray:
@@ -173,7 +174,6 @@ def rebalancing_model(
         return opt_port, vty_result_p, port_val, cash
 
     else:
-        # Optionally save inputs, so that failing problem can be investigated separately e.g. in a notebook
         inputs = {
             "mu": mu,
             "covariance": covariance,
@@ -184,14 +184,7 @@ def rebalancing_model(
             "max_weight": max_weight,
             "lower_bound": lower_bound,
         }
-        if debug_dump is not None:
-            with open(debug_dump, "wb") as file:
-                pickle.dump(inputs, file)
-            logger.info(f"Saved the failing solver inputs to {debug_dump}")
-
-        # Raise an error if the model is not optimal
-        logger.error(f"❌ Solver does not find optimal solution. Status code is {model.status}")
-        raise RuntimeError(f"Solver did not find an optimal solution (status: {model.status})")  # noqa: TRY003
+        raise_solver_failure(str(model.status), inputs, debug_dump)
 
 
 # ----------------------------------------------------------------------

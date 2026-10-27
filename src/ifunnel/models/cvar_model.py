@@ -6,7 +6,6 @@ with transaction costs and running the CVaR model over multiple periods to
 generate optimal portfolio allocations that satisfy risk constraints.
 """
 
-import pickle  # nosec B403
 from pathlib import Path
 
 import cvxpy as cp
@@ -14,6 +13,8 @@ import numpy as np
 import pandas as pd
 from cvxpy import sum as cp_sum
 from loguru import logger
+
+from .solver_failure import raise_solver_failure
 
 
 # ----------------------------------------------------------------------
@@ -165,7 +166,6 @@ def rebalancing_model(
         return opt_port, cvar_result_p, port_val, cash
 
     else:
-        # Optionally save inputs, so that failing problem can be investigated separately e. g. in a notebook
         inputs = {
             "mu": mu,
             "scenarios": scenarios,
@@ -176,14 +176,7 @@ def rebalancing_model(
             "trans_cost": trans_cost,
             "max_weight": max_weight,
         }
-        if debug_dump is not None:
-            with open(debug_dump, "wb") as file:
-                pickle.dump(inputs, file)
-            logger.info(f"Saved the failing solver inputs to {debug_dump}")
-
-        # Raise an error if the model is not optimal
-        logger.error(f"❌ Solver does not find optimal solution. Status code is {model.status}")
-        raise RuntimeError(f"Solver did not find an optimal solution (status: {model.status})")  # noqa: TRY003
+        raise_solver_failure(str(model.status), inputs, debug_dump)
 
 
 # ----------------------------------------------------------------------
