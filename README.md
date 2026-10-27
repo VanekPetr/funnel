@@ -65,6 +65,33 @@ Start Marimo notebooks for interactive analysis:
 make marimo
 ```
 
+## Usage
+
+`initialize_bot()` loads the ETF returns bundled with the package; pass a parquet
+file of your own to analyse other assets. Asset selection narrows the universe
+before optimising:
+
+```python
+from ifunnel import initialize_bot
+
+bot = initialize_bot()
+stats = bot.get_stat(start_date="2015-12-23", end_date="2017-07-01")
+print(list(stats.columns[:3]))
+
+_, mst_assets = bot.mst(start_date="2015-12-23", end_date="2017-07-01", n_mst_runs=3)
+_, cluster_assets = bot.clustering(start_date="2015-12-23", end_date="2017-07-01", n_clusters=3, n_assets=2)
+print(len(mst_assets), len(cluster_assets))
+```
+
+```result
+['Average Annual Returns', 'Standard Deviation of Returns', 'Sharpe Ratio']
+97 6
+```
+
+Either subset can then be passed to `bot.backtest(...)` or
+`bot.lifecycle_scenario_analysis(...)`; the docstrings of both list every
+parameter, and the end of `src/ifunnel/models/main.py` runs a complete example.
+
 ## Project Structure
 
 - `src/ifunnel/models/`: Core logic for optimization, clustering, and scenario generation.

@@ -157,7 +157,17 @@ class TradeBot:
         return plotting.plot_portfolio_densities(portfolio_performance_dict, compositions, tickers, names)
 
     def get_stat(self, start_date: str, end_date: str) -> pd.DataFrame:
-        """METHOD COMPUTING ANNUAL RETURNS, ANNUAL STD. DEV. & SHARPE RATIO OF ASSETS."""
+        """Compute annualised return, volatility and Sharpe ratio for every asset.
+
+        Args:
+            start_date: First date of the window (inclusive), e.g. ``"2015-12-23"``.
+            end_date: Last date of the window (inclusive).
+
+        Returns:
+            pd.DataFrame: One row per ticker with the columns ``Average Annual Returns``,
+                ``Standard Deviation of Returns``, ``Sharpe Ratio``, ``ISIN``, ``Name``,
+                ``Size`` and ``Type``.
+        """
         # ANALYZE THE DATA for a given time period
         weekly_data = self.weekly_returns[
             (self.weekly_returns.index >= start_date) & (self.weekly_returns.index <= end_date)
@@ -277,7 +287,22 @@ class TradeBot:
         )
 
     def mst(self, start_date: str, end_date: str, n_mst_runs: int, plot: bool = False) -> tuple:
-        """METHOD TO RUN MST METHOD AND PRINT RESULTS."""
+        """Select a diversified subset of assets with repeated minimum spanning trees.
+
+        Each run keeps the leaf nodes of the minimum spanning tree built on the
+        previous run's subset, so more runs give a smaller, more diversified set.
+
+        Args:
+            start_date: First date of the window (inclusive).
+            end_date: Last date of the window (inclusive).
+            n_mst_runs: Number of successive MST reductions to apply.
+            plot: If True, also build a risk/return figure highlighting the subset.
+
+        Returns:
+            tuple: ``(fig, subset)`` where ``fig`` is a :class:`plotly.graph_objects.Figure`
+                (``None`` unless ``plot`` is True and the subset is non-empty) and
+                ``subset`` is the list of selected tickers.
+        """
         fig, subset_mst = None, []
 
         # Starting subset of data for MST
@@ -308,7 +333,24 @@ class TradeBot:
         n_assets: int,
         plot: bool = False,
     ) -> tuple:
-        """METHOD TO RUN MST METHOD AND PRINT RESULTS."""
+        """Select assets by hierarchical clustering and per-cluster Sharpe ratio.
+
+        Assets are grouped into ``n_clusters`` clusters on their return
+        correlations, and the ``n_assets`` assets with the highest Sharpe ratio
+        are taken from each cluster (all of them when a cluster is smaller).
+
+        Args:
+            start_date: First date of the window (inclusive).
+            end_date: Last date of the window (inclusive).
+            n_clusters: Number of clusters to form.
+            n_assets: Number of assets to take from each cluster.
+            plot: If True, also build a risk/return figure coloured by cluster.
+
+        Returns:
+            tuple: ``(fig, subset)`` where ``fig`` is a :class:`plotly.graph_objects.Figure`
+                (``None`` unless ``plot`` is True) and ``subset`` is the list of
+                selected tickers.
+        """
         fig = None
         dataset = self.weekly_returns[
             (self.weekly_returns.index >= start_date) & (self.weekly_returns.index <= end_date)
@@ -349,7 +391,37 @@ class TradeBot:
         solver: str = "CLARABEL",
         lower_bound: int = 0,
     ) -> tuple[pd.DataFrame, pd.DataFrame, go.Figure, go.Figure]:
-        """METHOD TO COMPUTE THE BACKTEST."""
+        """Backtest an optimised portfolio against a benchmark.
+
+        The portfolio is rebalanced every four weeks over the test window
+        ``(start_test_date, end_test_date]``, each time on moments or scenarios
+        estimated from a rolling window of the history that starts at
+        ``start_train_date``. The budget is 100, transaction costs are 0.1% and the
+        CVaR model uses a 5% tail. Risk targets are taken from the benchmark, so the
+        optimised portfolio is compared with the benchmark at the benchmark's risk.
+
+        Args:
+            start_train_date: First date of the estimation data.
+            start_test_date: Last date before the test window starts.
+            end_test_date: Last date of the test window (inclusive).
+            subset_of_assets: Tickers the portfolio may invest in, e.g. the output of
+                :meth:`mst` or :meth:`clustering`.
+            benchmarks: Asset *names* (not tickers) that make up the benchmark.
+            scenarios_type: ``"MonteCarlo"`` or ``"Bootstrapping"``.
+            n_simulations: Number of scenarios generated per period.
+            model: ``"Markowitz model"`` (volatility target) or ``"CVaR model"``.
+            solver: CVXPY solver name, as listed by ``cvxpy.installed_solvers()``.
+            lower_bound: Minimum weight of each asset the portfolio holds.
+
+        Returns:
+            tuple: ``(portfolio_stats, benchmark_stats, fig_performance, fig_composition)``:
+                performance statistics of the optimised portfolio and of the benchmark,
+                and figures of the value paths and of the portfolio composition.
+
+        Raises:
+            ValueError: If ``model`` or ``scenarios_type`` is not one of the values above,
+                or a benchmark name is not in the data.
+        """
         if model not in _BACKTEST_MODELS:
             raise ValueError(f"Unknown model {model!r}; choose one of {_BACKTEST_MODELS}")  # noqa: TRY003
         if scenarios_type not in _BACKTEST_SCENARIOS:
@@ -474,7 +546,37 @@ class TradeBot:
         rng_seed: int = 0,
         test_split: float = False,
     ) -> tuple[dict, pd.DataFrame, go.Figure, go.Figure, dict, dict, go.Figure]:
-        """METHOD TO COMPUTE THE LIFECYCLE SCENARIO ANALYSIS."""
+        """Simulate a lifecycle investment with withdrawals along several glide paths.
+
+        Glide paths that lower the portfolio risk from ``initial_risk_appetite``
+        to 1% are generated, each is turned into yearly target allocations, and
+        every allocation is simulated over ``n_simulations`` return scenarios while
+        withdrawing a yearly amount that grows by 4%.
+
+        Args:
+            subset_of_assets: Tickers the portfolio may invest in.
+            scenarios_type: ``"MonteCarlo"`` or ``"Bootstrap"``.
+            n_simulations: Number of return scenarios.
+            end_year: Final year of the horizon; the horizon starts in 2023 (see #284).
+            withdrawals: Withdrawal in the first year, increased by 4% per year.
+            initial_risk_appetite: Portfolio volatility at the start of the glide paths.
+            initial_budget: Starting wealth.
+            rng_seed: Seed for the scenario generator; ``0`` leaves it unseeded.
+            test_split: If non-zero, the fraction of the history used to generate
+                scenarios; the remainder estimates the moments behind the targets.
+                If zero, the whole history is used for both.
+
+        Returns:
+            tuple: ``(terminal_wealth, summary, fig_performance, fig_glidepaths,
+                allocation_targets, fig_compositions, fig_compositions_all)``: per glide
+                path, the scenario results and the target allocations (dicts keyed by
+                glide path name); a DataFrame of analysis metrics with one column per
+                glide path; and the terminal-wealth density, glide path and composition
+                figures (``fig_compositions`` is a dict of figures).
+
+        Raises:
+            ValueError: If ``scenarios_type`` is not ``"MonteCarlo"`` or ``"Bootstrap"``.
+        """
         # ------------------------------- INITIALIZE FUNCTION -------------------------------
         n_periods = end_year - 2023
         withdrawal_lst = [withdrawals * (1 + 0.04) ** i for i in range(n_periods)]
