@@ -83,8 +83,7 @@ def test_get_algostrata_data_with_null_price_data():
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {"result": [{"priceData": None}]}
 
-        # This will fail with UnboundLocalError because daily_prices is never created
-        with pytest.raises(UnboundLocalError):
+        with pytest.raises(ValueError, match="No price data"):
             get_algostrata_data()
 
 
@@ -104,8 +103,7 @@ def test_get_algostrata_data_error_response():
         mock_post.return_value.reason = "Internal Server Error"
         mock_post.return_value.text = "Error message"
 
-        # This will fail with UnboundLocalError because daily_prices is never created
-        with pytest.raises(UnboundLocalError):
+        with pytest.raises(ValueError, match="No price data"):
             get_algostrata_data()
 
 
@@ -159,44 +157,74 @@ def test_get_algostrata_data_with_nan_values():
         assert not result.empty
 
 
+def _price_result(*prices):
+    """Return one asset's entry in a prices API response, dated from 2023-01-01."""
+    return {
+        "priceData": {
+            "reInvestedPrices": [
+                {"date": f"2023-01-0{day}T00:00:00Z", "unit_DKK": price} for day, price in enumerate(prices, start=1)
+            ]
+        }
+    }
+
+
 def test_get_algostrata_data_mixed_responses():
-    """Test AlgoStrata data fetching with mix of success and error responses."""
+    """A failed middle batch drops its assets without shifting the labels of later ones."""
     with (
         patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.get") as mock_get,
         patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.post") as mock_post,
-        patch("builtins.print"),  # Suppress print statements
     ):
-        # Mock the names API response with enough assets to trigger multiple batches
+        # Nine assets, so three batches of three
         mock_get.return_value.json.return_value = [
-            {"id": str(i), "isin": f"US{i:03d}", "name": f"Asset{i}"} for i in range(6)
+            {"id": str(i), "isin": f"US{i:03d}", "name": f"Asset{i}"} for i in range(9)
         ]
 
-        # Create responses that alternate between success and error
         def mock_post_side_effect(*args, **kwargs):
-            """Return an alternating success/error response per POST call."""
+            """Fail the second POST call and price every requested asset otherwise."""
             mock_response = type("Response", (), {})()
-            # First call succeeds, second fails, third succeeds
-            if mock_post.call_count % 2 == 1:
-                mock_response.status_code = 200
-                mock_response.json = lambda: {
-                    "result": [
-                        {
-                            "priceData": {
-                                "reInvestedPrices": [
-                                    {"date": "2023-01-01T00:00:00Z", "unit_DKK": 100},
-                                    {"date": "2023-01-02T00:00:00Z", "unit_DKK": 101},
-                                ]
-                            }
-                        }
-                    ]
-                }
-            else:
+            if mock_post.call_count == 2:
                 mock_response.status_code = 500
                 mock_response.reason = "Internal Server Error"
                 mock_response.text = "Error"
+            else:
+                ids = kwargs["json"]["idList"]
+                mock_response.status_code = 200
+                mock_response.json = lambda: {"result": [_price_result(int(i), int(i) + 1) for i in ids]}
             return mock_response
 
         mock_post.side_effect = mock_post_side_effect
 
         result = get_algostrata_data()
-        assert isinstance(result, pd.DataFrame)
+
+        assert list(result.columns) == [
+            ("US000", "Asset0"),
+            ("US001", "Asset1"),
+            ("US002", "Asset2"),
+            ("US006", "Asset6"),
+            ("US007", "Asset7"),
+            ("US008", "Asset8"),
+        ]
+        # Each column holds the prices of the asset it is labelled with
+        assert result[("US007", "Asset7")].tolist() == [7, 8]
+
+
+def test_get_algostrata_data_first_asset_without_prices():
+    """When the first asset has no price data, the next one keeps its own label."""
+    with (
+        patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.get") as mock_get,
+        patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.post") as mock_post,
+    ):
+        mock_get.return_value.json.return_value = [
+            {"id": "1", "isin": "US123", "name": "Asset1"},
+            {"id": "2", "isin": "US456", "name": "Asset2"},
+            {"id": "3", "isin": "US789", "name": "Asset3"},
+        ]
+        mock_post.return_value.status_code = 200
+        mock_post.return_value.json.return_value = {
+            "result": [{"priceData": None}, _price_result(200, 201), _price_result(300, 301)]
+        }
+
+        result = get_algostrata_data()
+
+        assert list(result.columns) == [("US456", "Asset2"), ("US789", "Asset3")]
+        assert result[("US456", "Asset2")].tolist() == [200, 201]

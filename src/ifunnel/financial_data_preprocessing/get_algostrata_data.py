@@ -64,7 +64,9 @@ def get_algostrata_data() -> pd.DataFrame:
                      with dates as index and multi-level columns for ISIN and name
 
     Raises:
-        requests.RequestException: If API requests fail
+        requests.RequestException: If the asset names request fails
+        ValueError: If no asset returned any price data, e.g. because every
+            prices request failed
 
     Example:
         Needs network access and an AlgoStrata API key (``ALGOSTRATA_KEY``), so it is
@@ -74,42 +76,27 @@ def get_algostrata_data() -> pd.DataFrame:
         >>> prices.columns.nlevels  # doctest: +SKIP
         2
     """
-    id_list = []  # empty list of IDs
-    isin_list = []  # empty list of isin codes
-    name_list = []  # empty list of names
+    headers = {
+        "X-Api-Key": settings.ALGOSTRATA_KEY,
+        "content-type": "application/json",
+    }
     # GET ASSET NAME DATA
-    response = requests.get(
-        settings.ALGOSTRATA_NAMES_URL,
-        headers={
-            "X-Api-Key": settings.ALGOSTRATA_KEY,
-            "content-type": "application/json",
-        },
-        timeout=30,
-    )
-    data = response.json()  # downloaded data
-    # SAVE IDs and ISIN CODES INTO LISTS
-    for asset in data:
-        id_list.append(asset["id"])
-        isin_list.append(asset["isin"])
-        name_list.append(asset["name"])
+    response = requests.get(settings.ALGOSTRATA_NAMES_URL, headers=headers, timeout=30)
+    response.raise_for_status()
+    assets = response.json()  # list of {"id", "isin", "name"}
 
-    # Get the price data with index
+    # Get the price data, a few assets per request
     # ----------------------------------------------------------------------
     batch_size = 3  # size of a batch
-    round_rep = int(np.ceil(len(id_list) / batch_size))  # number of iterations
-    rep = 0  # current iteration
-    first_run = True
-    # LOAD DATASET BY STEP, EACH STEP XY ASSETS
-    for sub_id_list in batch(id_list, batch_size):
+    round_rep = int(np.ceil(len(assets) / batch_size))  # number of iterations
+    columns = []  # one single-column frame per asset with price data
+    for rep, sub_assets in enumerate(batch(assets, batch_size)):
         # GET ASSET PRICE DATA
         logger.debug(f"Starting round {rep + 1} out of {round_rep}")
         response = requests.post(
             settings.ALGOSTRATA_PRICES_URL,
-            json={"idList": sub_id_list},
-            headers={
-                "X-Api-Key": settings.ALGOSTRATA_KEY,
-                "content-type": "application/json",
-            },
+            json={"idList": [asset["id"] for asset in sub_assets]},
+            headers=headers,
             timeout=30,
         )
 
@@ -117,37 +104,24 @@ def get_algostrata_data() -> pd.DataFrame:
             logger.warning(f"Round {rep + 1} out of {round_rep} failed: {response.reason}, content {response.text}")
             continue
 
-        data = response.json()  # downloaded data
+        # Results come back in the order of the requested ids, so each one is
+        # labelled by the asset it was requested for rather than by a running offset
+        for asset, result in zip(sub_assets, response.json()["result"], strict=False):
+            if result["priceData"] is None:
+                continue
+            reinvested_prices = result["priceData"]["reInvestedPrices"]
+            df = pd.DataFrame(
+                [x["unit_DKK"] for x in reinvested_prices],
+                index=pd.DatetimeIndex([dateutil.parser.parse(x["date"]) for x in reinvested_prices]),
+                columns=pd.MultiIndex.from_tuples([(asset["isin"], asset["name"])]),
+            )
+            # Keep the asset only if it has at least one price
+            if not df.isnull().values.all():
+                columns.append(df)
 
-        # CREATE PANDAS TABLE WITH ALL PRICE DATA
-        for num, asset in enumerate(data["result"]):
-            # IF WE HAVE A PRICE DATA THEN
-            if asset["priceData"] is not None:
-                price_data = asset["priceData"]
-                reinvested_prices = price_data["reInvestedPrices"]
-                dates = [dateutil.parser.parse(x["date"]) for x in reinvested_prices]
-                prices = [x["unit_DKK"] for x in reinvested_prices]
-
-                # IF THE FIRST RUN, THEN CREATE A TABLE
-                if first_run:
-                    daily_prices = pd.DataFrame(prices, index=dates, columns=[isin_list[0:1], name_list[0:1]])  # ty: ignore[invalid-argument-type]
-                    first_run = False
-                # IF NOT THE FIRST RUN, JUST CONCAT THE COLUMN INTO EXISTING TABLE
-                else:
-                    df = pd.DataFrame(
-                        prices,
-                        index=dates,  # ty: ignore[invalid-argument-type]
-                        columns=[  # ty: ignore[invalid-argument-type]
-                            isin_list[rep * batch_size + num : rep * batch_size + num + 1],
-                            name_list[rep * batch_size + num : rep * batch_size + num + 1],
-                        ],
-                    )
-                    # IF THE PRICE DATA ARE NOT ALL NaN, THEN
-                    if not df.isnull().values.all():
-                        daily_prices = pd.concat([daily_prices, df], axis=1)
-        rep += 1
-
-    return daily_prices
+    if not columns:
+        raise ValueError("No price data was downloaded from AlgoStrata")  # noqa: TRY003
+    return pd.concat(columns, axis=1)
 
 
 if __name__ == "__main__":  # pragma: no cover
