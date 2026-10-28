@@ -6,6 +6,36 @@ import pandas as pd
 import pytest
 
 from ifunnel.financial_data_preprocessing.get_algostrata_data import batch, get_algostrata_data
+from ifunnel.settings import settings
+
+_ALGOSTRATA_SETTINGS = ("ALGOSTRATA_NAMES_URL", "ALGOSTRATA_PRICES_URL", "ALGOSTRATA_KEY")
+
+
+@pytest.fixture(autouse=True)
+def algostrata_configured(monkeypatch):
+    """Configure every AlgoStrata setting, so the mocked requests are reached."""
+    for name in _ALGOSTRATA_SETTINGS:
+        monkeypatch.setattr(settings, name, f"test-{name.lower()}")
+
+
+@pytest.mark.parametrize("unset", _ALGOSTRATA_SETTINGS)
+def test_get_algostrata_data_requires_configuration(monkeypatch, unset):
+    """An unset AlgoStrata setting is named in the error, and no request is sent."""
+    monkeypatch.setattr(settings, unset, None)
+    with (
+        patch("ifunnel.financial_data_preprocessing.get_algostrata_data.requests.get") as mock_get,
+        pytest.raises(ValueError, match=f"AlgoStrata is not configured: set {unset} "),
+    ):
+        get_algostrata_data()
+    mock_get.assert_not_called()
+
+
+def test_get_algostrata_data_names_every_missing_setting(monkeypatch):
+    """With nothing configured, all three settings are named."""
+    for name in _ALGOSTRATA_SETTINGS:
+        monkeypatch.setattr(settings, name, None)
+    with pytest.raises(ValueError, match="set ALGOSTRATA_NAMES_URL, ALGOSTRATA_PRICES_URL, ALGOSTRATA_KEY "):
+        get_algostrata_data()
 
 
 def test_batch_basic():

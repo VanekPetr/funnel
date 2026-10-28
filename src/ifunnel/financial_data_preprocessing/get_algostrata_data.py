@@ -64,6 +64,8 @@ def get_algostrata_data() -> pd.DataFrame:
                      with dates as index and multi-level columns for ISIN and name
 
     Raises:
+        ValueError: If ``ALGOSTRATA_NAMES_URL``, ``ALGOSTRATA_PRICES_URL`` or
+            ``ALGOSTRATA_KEY`` is not set; the message names the missing ones
         requests.RequestException: If the asset names request fails
         ValueError: If no asset returned any price data, e.g. because every
             prices request failed
@@ -76,12 +78,27 @@ def get_algostrata_data() -> pd.DataFrame:
         >>> prices.columns.nlevels  # doctest: +SKIP
         2
     """
+    names_url = settings.ALGOSTRATA_NAMES_URL
+    prices_url = settings.ALGOSTRATA_PRICES_URL
+    key = settings.ALGOSTRATA_KEY
+    if not names_url or not prices_url or not key:
+        missing = [
+            name
+            for name, value in [
+                ("ALGOSTRATA_NAMES_URL", names_url),
+                ("ALGOSTRATA_PRICES_URL", prices_url),
+                ("ALGOSTRATA_KEY", key),
+            ]
+            if not value
+        ]
+        raise ValueError(f"AlgoStrata is not configured: set {', '.join(missing)} (e.g. in a .env file)")  # noqa: TRY003
+
     headers = {
-        "X-Api-Key": settings.ALGOSTRATA_KEY,
+        "X-Api-Key": key,
         "content-type": "application/json",
     }
     # GET ASSET NAME DATA
-    response = requests.get(settings.ALGOSTRATA_NAMES_URL, headers=headers, timeout=30)
+    response = requests.get(names_url, headers=headers, timeout=30)
     response.raise_for_status()
     assets = response.json()  # list of {"id", "isin", "name"}
 
@@ -94,7 +111,7 @@ def get_algostrata_data() -> pd.DataFrame:
         # GET ASSET PRICE DATA
         logger.debug(f"Starting round {rep + 1} out of {round_rep}")
         response = requests.post(
-            settings.ALGOSTRATA_PRICES_URL,
+            prices_url,
             json={"idList": [asset["id"] for asset in sub_assets]},
             headers=headers,
             timeout=30,

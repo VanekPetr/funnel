@@ -20,9 +20,9 @@ class Settings(BaseSettings):
 
     Attributes:
         NAME: Name of the application.
-        ALGOSTRATA_NAMES_URL: URL for AlgoStrata names API endpoint.
-        ALGOSTRATA_PRICES_URL: URL for AlgoStrata prices API endpoint.
-        ALGOSTRATA_KEY: API key for AlgoStrata services.
+        ALGOSTRATA_NAMES_URL: URL for AlgoStrata names API endpoint, or None if unset.
+        ALGOSTRATA_PRICES_URL: URL for AlgoStrata prices API endpoint, or None if unset.
+        ALGOSTRATA_KEY: API key for AlgoStrata services, or None if unset.
 
     Example:
         Values are read from the environment (or a ``.env`` file); keyword
@@ -32,12 +32,12 @@ class Settings(BaseSettings):
         'my-key'
     """
 
-    # Would you like to download the latest AlgoStrata's data?
-    # TODO write to kourosh@algostrata.dk to get your own API key
+    # Only needed to download the latest AlgoStrata data; the API key is issued by
+    # AlgoStrata. get_algostrata_data() refuses to run while any of these is unset.
     NAME: str = "Investment Funnel Secrets"
-    ALGOSTRATA_NAMES_URL: str = "private"
-    ALGOSTRATA_PRICES_URL: str = "notgoingtotellyou"
-    ALGOSTRATA_KEY: str = "nonono"
+    ALGOSTRATA_NAMES_URL: str | None = None
+    ALGOSTRATA_PRICES_URL: str | None = None
+    ALGOSTRATA_KEY: str | None = None
 
 
 settings = Settings()
