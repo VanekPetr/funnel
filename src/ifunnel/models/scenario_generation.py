@@ -6,11 +6,44 @@ moments like mean and covariance matrices with various shrinkage methods.
 """
 
 import math
+import warnings
 
 import numpy as np
 import pandas as pd
 from loguru import logger
 from sklearn.covariance import MinCovDet
+
+# Accepted scenarios_type values of the backtest and lifecycle analyses, and the
+# deprecated spellings still accepted with a warning
+SCENARIO_TYPES = ("MonteCarlo", "Bootstrap")
+_DEPRECATED_SCENARIO_TYPES = {"Bootstrapping": "Bootstrap"}
+
+
+def resolve_scenarios_type(scenarios_type: str) -> str:
+    """Return the canonical spelling of ``scenarios_type``.
+
+    A deprecated spelling is translated with a ``DeprecationWarning``; anything else
+    that is not one of ``SCENARIO_TYPES`` raises ``ValueError``.
+
+    Example:
+        >>> resolve_scenarios_type("MonteCarlo")
+        'MonteCarlo'
+        >>> resolve_scenarios_type("Monte Carlo")
+        Traceback (most recent call last):
+        ...
+        ValueError: Unknown scenarios_type 'Monte Carlo'; choose one of ('MonteCarlo', 'Bootstrap')
+    """
+    if scenarios_type in _DEPRECATED_SCENARIO_TYPES:
+        canonical = _DEPRECATED_SCENARIO_TYPES[scenarios_type]
+        warnings.warn(
+            f"scenarios_type={scenarios_type!r} is deprecated; use {canonical!r} instead",
+            DeprecationWarning,
+            stacklevel=4,  # point at the caller of the TradeBot method
+        )
+        return canonical
+    if scenarios_type not in SCENARIO_TYPES:
+        raise ValueError(f"Unknown scenarios_type {scenarios_type!r}; choose one of {SCENARIO_TYPES}")  # noqa: TRY003
+    return scenarios_type
 
 
 class MomentGenerator:

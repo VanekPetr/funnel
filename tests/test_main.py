@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from ifunnel.models import plotting
 from ifunnel.models.main import TradeBot, initialize_bot
 
 
@@ -328,10 +329,10 @@ class TestTradeBot:
 
 
 class TestPlotBacktest:
-    """Tests for the __plot_backtest static method."""
+    """Tests for plotting.plot_backtest, which builds the TradeBot.backtest figures."""
 
     def test_plot_backtest_basic(self, trade_bot):
-        """Test the __plot_backtest method."""
+        """Test plotting.plot_backtest."""
         # Create sample performance data
         dates = pd.date_range("2021-01-01", periods=10, freq="W")
         performance = pd.DataFrame({"Portfolio_Value": np.linspace(100, 120, 10)}, index=dates)
@@ -342,7 +343,7 @@ class TestPlotBacktest:
             {"ISIN1": [0.5, 0.4, 0.3], "ISIN2": [0.3, 0.4, 0.5], "ISIN3": [0.2, 0.2, 0.2]}, index=[0, 1, 2]
         )
 
-        fig_performance, fig_composition = TradeBot._TradeBot__plot_backtest(
+        fig_performance, fig_composition = plotting.plot_backtest(
             performance=performance,
             performance_benchmark=performance_benchmark,
             composition=composition,
@@ -354,7 +355,7 @@ class TestPlotBacktest:
         assert fig_composition is not None
 
     def test_plot_backtest_old_data_format(self, trade_bot):
-        """Test the __plot_backtest method with old data format (triggers exception handling)."""
+        """Test plotting.plot_backtest with old data format (triggers exception handling)."""
         # Create sample performance data with incompatible index
         dates = pd.date_range("2021-01-01", periods=10, freq="W")
         performance = pd.DataFrame({"Portfolio_Value": np.linspace(100, 120, 10)}, index=dates)
@@ -368,7 +369,7 @@ class TestPlotBacktest:
             {"ISIN1": [0.5, 0.4, 0.3], "ISIN2": [0.3, 0.4, 0.5], "ISIN3": [0.2, 0.2, 0.2]}, index=[0, 1, 2]
         )
 
-        fig_performance, fig_composition = TradeBot._TradeBot__plot_backtest(
+        fig_performance, fig_composition = plotting.plot_backtest(
             performance=performance,
             performance_benchmark=performance_benchmark,
             composition=composition,
@@ -381,10 +382,10 @@ class TestPlotBacktest:
 
 
 class TestPlotPortfolioDensities:
-    """Tests for the __plot_portfolio_densities static method."""
+    """Tests for plotting.plot_portfolio_densities, which builds the lifecycle figures."""
 
     def test_plot_portfolio_densities(self, trade_bot):
-        """Test the __plot_portfolio_densities method."""
+        """Test plotting.plot_portfolio_densities."""
         # Create sample portfolio performance data
         np.random.seed(42)
         portfolio_performance_dict = {
@@ -398,7 +399,7 @@ class TestPlotPortfolioDensities:
             "Aggressive": pd.DataFrame({"ISIN1": [0.5, 0.4], "ISIN2": [0.4, 0.5], "Cash": [0.1, 0.1]}, index=[0, 1]),
         }
 
-        fig, composition_figures, fig_subplots = TradeBot._TradeBot__plot_portfolio_densities(
+        fig, composition_figures, fig_subplots = plotting.plot_portfolio_densities(
             portfolio_performance_dict=portfolio_performance_dict,
             compositions=compositions,
             tickers=trade_bot.tickers,
@@ -410,7 +411,7 @@ class TestPlotPortfolioDensities:
         assert fig_subplots is not None
 
     def test_plot_portfolio_densities_with_reverse(self, trade_bot):
-        """Test __plot_portfolio_densities filtering out 'reverse' compositions."""
+        """Test plotting.plot_portfolio_densities filtering out 'reverse' compositions."""
         np.random.seed(42)
         portfolio_performance_dict = {
             "Conservative": pd.DataFrame({"Terminal Wealth": np.random.normal(100000, 10000, 100)}),
@@ -421,7 +422,7 @@ class TestPlotPortfolioDensities:
             "Conservative_reverse": pd.DataFrame({"ISIN1": [0.2], "ISIN2": [0.3], "Cash": [0.5]}, index=[0]),
         }
 
-        fig, composition_figures, _fig_subplots = TradeBot._TradeBot__plot_portfolio_densities(
+        fig, composition_figures, _fig_subplots = plotting.plot_portfolio_densities(
             portfolio_performance_dict=portfolio_performance_dict,
             compositions=compositions,
             tickers=trade_bot.tickers,
@@ -688,7 +689,7 @@ class TestLifecycleScenarioAnalysis:
     def test_lifecycle_no_rng_seed(self, trade_bot):
         """Test lifecycle_scenario_analysis without rng_seed (rng_seed=0 branch)."""
         # Mock the plotting to avoid gaussian_kde issues with low-variance data
-        with patch.object(TradeBot, "_TradeBot__plot_portfolio_densities") as mock_plot:
+        with patch.object(plotting, "plot_portfolio_densities") as mock_plot:
             # Return mock figures
             mock_plot.return_value = (MagicMock(), {}, MagicMock())
 
