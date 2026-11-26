@@ -1,7 +1,7 @@
-sha: 371314b93a460e27d648c87377e8fa252bd92d15
+sha: 2583ac7bd2d6e9f37a750b748483483fff90f5b9
 repo: jebel-quant/rhiza
 host: github
-ref: v1.8.0
+ref: v1.14.0
 include: []
 exclude:
 - SECURITY.md
@@ -18,6 +18,7 @@ files:
 - .devcontainer/bootstrap.sh
 - .devcontainer/devcontainer.json
 - .editorconfig
+- .github/PULL_REQUEST_TEMPLATE.md
 - .github/dependabot.yml
 - .github/release.yml
 - .github/rulesets/main-branch-protection.json
@@ -27,16 +28,20 @@ files:
 - .github/workflows/rhiza_book.yml
 - .github/workflows/rhiza_ci.yml
 - .github/workflows/rhiza_codeql.yml
+- .github/workflows/rhiza_conda_recipe.yml
 - .github/workflows/rhiza_marimo.yml
 - .github/workflows/rhiza_paper.yml
 - .github/workflows/rhiza_release.yml
 - .github/workflows/rhiza_scorecard.yml
+- .github/workflows/rhiza_sync.yml
 - .github/workflows/rhiza_weekly.yml
 - .gitignore
 - .pre-commit-config.yaml
 - .python-version
 - .rhiza/CODE_OF_CONDUCT.md
 - .rhiza/CONTRIBUTING.md
+- .rhiza/scripts/conda_recipe.py
+- .rhiza/scripts/release_publish.py
 - .rhiza/semgrep.yml
 - LICENSE
 - Makefile
@@ -47,5 +52,5 @@ files:
 - pytest.ini
 - ruff.toml
 - tests/test_rhiza_packaging.py
-synced_at: '2026-09-07T17:58:22Z'
+synced_at: '2026-11-25T17:44:01Z'
 strategy: merge
